@@ -1,0 +1,1 @@
+# cursor-hackathon-2026
