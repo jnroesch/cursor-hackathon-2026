@@ -145,7 +145,7 @@ public class ProjectService : IProjectService
         await _context.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<ProjectMemberDto>> GetProjectMembersAsync(Guid projectId)
+    public async Task<IEnumerable<ProjectAuthorDto>> GetProjectAuthorsAsync(Guid projectId)
     {
         var members = await _context.ProjectMembers
             .Where(pm => pm.ProjectId == projectId)
@@ -153,7 +153,7 @@ public class ProjectService : IProjectService
             .ToListAsync();
 
         // TODO: Calculate actual edit and suggestion counts
-        return members.Select(pm => new ProjectMemberDto(
+        return members.Select(pm => new ProjectAuthorDto(
             pm.UserId,
             new UserSummaryDto(pm.User.Id, pm.User.DisplayName, pm.User.AvatarUrl),
             pm.Role,
@@ -164,7 +164,7 @@ public class ProjectService : IProjectService
         ));
     }
 
-    public async Task<ProjectMemberDto> InviteMemberAsync(Guid projectId, InviteMemberRequest request)
+    public async Task<ProjectAuthorDto> InviteAuthorAsync(Guid projectId, InviteAuthorRequest request)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
         if (user == null)
@@ -173,7 +173,7 @@ public class ProjectService : IProjectService
         var existingMember = await _context.ProjectMembers
             .FirstOrDefaultAsync(pm => pm.ProjectId == projectId && pm.UserId == user.Id);
         if (existingMember != null)
-            throw new InvalidOperationException("User is already a member");
+            throw new InvalidOperationException("User is already an author");
 
         var permissions = request.Role switch
         {
@@ -197,7 +197,7 @@ public class ProjectService : IProjectService
         _context.ProjectMembers.Add(member);
         await _context.SaveChangesAsync();
 
-        return new ProjectMemberDto(
+        return new ProjectAuthorDto(
             user.Id,
             new UserSummaryDto(user.Id, user.DisplayName, user.AvatarUrl),
             member.Role,
@@ -208,14 +208,14 @@ public class ProjectService : IProjectService
         );
     }
 
-    public async Task<ProjectMemberDto> UpdateMemberRoleAsync(Guid projectId, Guid userId, UpdateMemberRoleRequest request)
+    public async Task<ProjectAuthorDto> UpdateAuthorRoleAsync(Guid projectId, Guid userId, UpdateAuthorRoleRequest request)
     {
         var member = await _context.ProjectMembers
             .Include(pm => pm.User)
             .FirstOrDefaultAsync(pm => pm.ProjectId == projectId && pm.UserId == userId);
 
         if (member == null)
-            throw new InvalidOperationException("Member not found");
+            throw new InvalidOperationException("Author not found");
 
         member.Role = request.Role;
         if (request.Permissions.HasValue)
@@ -225,7 +225,7 @@ public class ProjectService : IProjectService
 
         await _context.SaveChangesAsync();
 
-        return new ProjectMemberDto(
+        return new ProjectAuthorDto(
             member.UserId,
             new UserSummaryDto(member.User.Id, member.User.DisplayName, member.User.AvatarUrl),
             member.Role,
@@ -236,13 +236,13 @@ public class ProjectService : IProjectService
         );
     }
 
-    public async Task RemoveMemberAsync(Guid projectId, Guid userId)
+    public async Task RemoveAuthorAsync(Guid projectId, Guid userId)
     {
         var member = await _context.ProjectMembers
             .FirstOrDefaultAsync(pm => pm.ProjectId == projectId && pm.UserId == userId);
 
         if (member == null)
-            throw new InvalidOperationException("Member not found");
+            throw new InvalidOperationException("Author not found");
 
         if (member.Role == ProjectRole.Owner)
             throw new InvalidOperationException("Cannot remove the project owner");
