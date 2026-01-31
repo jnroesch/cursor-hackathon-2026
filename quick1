@@ -1,0 +1,89 @@
+Can you look at my gemini generated design system. Review it and create the needed files for me?
+
+This design system, which I've dubbed "Scharf Minimalist," is characterized by its high-contrast "split-screen" layout, heavy reliance on serif typography for editorial feel, and a monochromatic palette that uses subtle borders instead of shadows for depth.🎨 Visual Analysis & TokensBased on the image provided, here are the core design tokens:TokenValueDescriptionPrimary Background#F4F4F4The soft grey main content area.Secondary Sidebar#0D0D0DThe deep black right-hand utility panel.Accent Border#D1D1D1Thin, 1px lines used for UI separation.Primary Text#1A1A1AHigh legibility near-black for body copy.Muted Text#666666Greyed out metadata (e.g., dates, author).Typography (Headings)Scharf / SerifLarge, airy leading with tracking adjustments.Typography (Body)Sans-SerifClean, functional font for UI and long-form.🛠️ Implementation: tailwind.config.jsThis configuration captures the specific high-contrast layout and typography scales seen in the Art Basel article layout.JavaScriptmodule.exports = {
+  theme: {
+    extend: {
+      colors: {
+        brand: {
+          canvas: '#F4F4F4',    // Main article background
+          panel: '#0D0D0D',     // Dark sidebar
+          border: '#D1D1D1',    // Hairline dividers
+          accent: '#E5E5E5',    // Hover states
+        }
+      },
+      fontFamily: {
+        serif: ['"Scharf"', 'Georgia', 'serif'],
+        sans: ['"Inter"', 'system-ui', 'sans-serif'],
+      },
+      fontSize: {
+        'display': ['3.5rem', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
+        'article-body': ['1.125rem', { lineHeight: '1.6' }],
+      },
+      borderWidth: {
+        'hairline': '0.5px',
+      }
+    }
+  }
+}
+📝 Design-System.md (Source of Truth)Save this file as DESIGN_SYSTEM.md in your project root.Markdown# Scharf Design System v1.0
+
+## 1. Layout Principles
+- **Asymmetric Balance:** Main content sits on a light canvas (`#F4F4F4`) while utility/metadata lives in a dark right-panel (`#0D0D0D`).
+- **The "Left Rail":** A slim, icon-only navigation bar (approx. 60px wide) with hairline borders.
+
+## 2. Typography Scale
+- **H1 (Article Title):** 48px - 56px | Serif | Medium Weight | `#1A1A1A`
+- **Sub-headings:** 12px | Sans | All Caps | Tracking: 0.1em | `#666666`
+- **Body Text:** 18px | Sans | Line Height: 1.6 | `#222222`
+
+## 3. Component Specifications
+
+### Admonitions / Callouts
+Instead of colorful boxes, use the "Scharf" minimalist approach:
+- **Note:** Left-border 2px, `#0D0D0D`, Sans-serif, italicized.
+- **Tip:** Background `#FFFFFF`, thin border, icon prefix.
+
+### Navigation Sidebar
+- **Background:** `#FFFFFF` (Left) / `#0D0D0D` (Right)
+- **Icons:** Thin-stroke (2pt), uniform size.
+- **Active State:** Border-left 3px solid `#0D0D0D`.
+
+### Buttons
+- **Primary:** Solid `#0D0D0D`, Text `#FFFFFF`, 0px border-radius.
+- **Secondary:** Transparent, 1px border `#D1D1D1`, Text `#1A1A1A`.
+💻 CSS Variables (base.css)Add this to your global CSS to handle the specific "Art Basel" styling for Markdown elements.CSS:root {
+  --bg-main: #f4f4f4;
+  --bg-sidebar: #0d0d0d;
+  --text-main: #1a1a1a;
+  --border-color: #d1d1d1;
+}
+
+/* Editorial Heading Style */
+.prose h1 {
+  font-family: 'Scharf', serif;
+  font-weight: 400;
+  font-size: 3.5rem;
+  margin-bottom: 2rem;
+  color: var(--text-main);
+}
+
+/* Dark Side Panel Links */
+.sidebar-right a {
+  color: #ffffff;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.sidebar-right a:hover {
+  opacity: 1;
+}
+
+/* Code Blocks (High Contrast) */
+pre {
+  background: #1e1e1e;
+  border-radius: 0px; /* Stay sharp! */
+  padding: 1.5rem;
+  border-left: 4px solid var(--border-color);
+}
