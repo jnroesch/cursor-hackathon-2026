@@ -142,6 +142,12 @@ export class ProfileComponent implements OnInit {
 
     this.authService.updateProfile(request).subscribe({
       next: (user) => {
+        // Update form fields to match server response
+        this.displayName = user.displayName || '';
+        this.selectedRoles.set(user.roles || []);
+        this.favoriteMedia = user.favoriteMedia || '';
+        this.aboutMe = user.aboutMe || '';
+        
         // Update original data
         this.originalData = {
           displayName: user.displayName || '',
