@@ -141,6 +141,8 @@ resource "azurerm_postgresql_flexible_server_firewall_rule" "allow_azure" {
   server_id        = azurerm_postgresql_flexible_server.main.id
   start_ip_address = "0.0.0.0"
   end_ip_address   = "0.0.0.0"
+
+  depends_on = [azurerm_postgresql_flexible_server.main]
 }
 
 # =============================================================================
@@ -152,7 +154,7 @@ resource "azurerm_service_plan" "main" {
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   os_type             = "Linux"
-  sku_name            = "B1" # Basic tier
+  sku_name            = "B2" # Basic tier
 
   tags = local.common_tags
 }
