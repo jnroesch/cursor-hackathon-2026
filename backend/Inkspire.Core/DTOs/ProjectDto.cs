@@ -9,7 +9,7 @@ public record ProjectDto(
     string? CoverImageUrl,
     Guid OwnerId,
     UserSummaryDto Owner,
-    int MemberCount,
+    int AuthorCount,
     int DocumentCount,
     DateTime CreatedAt,
     DateTime UpdatedAt
@@ -19,7 +19,7 @@ public record ProjectSummaryDto(
     Guid Id,
     string Title,
     string? CoverImageUrl,
-    int MemberCount,
+    int AuthorCount,
     int WordCount,
     DateTime UpdatedAt
 );
@@ -35,7 +35,7 @@ public record UpdateProjectRequest(
     string? CoverImageUrl
 );
 
-public record ProjectMemberDto(
+public record ProjectAuthorDto(
     Guid UserId,
     UserSummaryDto User,
     ProjectRole Role,
@@ -45,12 +45,12 @@ public record ProjectMemberDto(
     int SuggestionCount
 );
 
-public record InviteMemberRequest(
+public record InviteAuthorRequest(
     string Email,
     ProjectRole Role
 );
 
-public record UpdateMemberRoleRequest(
+public record UpdateAuthorRoleRequest(
     ProjectRole Role,
     MemberPermissions? Permissions
 );

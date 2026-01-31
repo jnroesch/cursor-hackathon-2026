@@ -72,20 +72,20 @@ public class ProjectsController : ControllerBase
         }
     }
 
-    [HttpGet("{id}/members")]
-    public async Task<ActionResult<IEnumerable<ProjectMemberDto>>> GetMembers(Guid id)
+    [HttpGet("{id}/authors")]
+    public async Task<ActionResult<IEnumerable<ProjectAuthorDto>>> GetAuthors(Guid id)
     {
-        var members = await _projectService.GetProjectMembersAsync(id);
-        return Ok(members);
+        var authors = await _projectService.GetProjectAuthorsAsync(id);
+        return Ok(authors);
     }
 
-    [HttpPost("{id}/members")]
-    public async Task<ActionResult<ProjectMemberDto>> InviteMember(Guid id, [FromBody] InviteMemberRequest request)
+    [HttpPost("{id}/authors")]
+    public async Task<ActionResult<ProjectAuthorDto>> InviteAuthor(Guid id, [FromBody] InviteAuthorRequest request)
     {
         try
         {
-            var member = await _projectService.InviteMemberAsync(id, request);
-            return Ok(member);
+            var author = await _projectService.InviteAuthorAsync(id, request);
+            return Ok(author);
         }
         catch (InvalidOperationException ex)
         {
@@ -93,16 +93,16 @@ public class ProjectsController : ControllerBase
         }
     }
 
-    [HttpPut("{id}/members/{userId}")]
-    public async Task<ActionResult<ProjectMemberDto>> UpdateMemberRole(
+    [HttpPut("{id}/authors/{userId}")]
+    public async Task<ActionResult<ProjectAuthorDto>> UpdateAuthorRole(
         Guid id, 
         Guid userId, 
-        [FromBody] UpdateMemberRoleRequest request)
+        [FromBody] UpdateAuthorRoleRequest request)
     {
         try
         {
-            var member = await _projectService.UpdateMemberRoleAsync(id, userId, request);
-            return Ok(member);
+            var author = await _projectService.UpdateAuthorRoleAsync(id, userId, request);
+            return Ok(author);
         }
         catch (InvalidOperationException ex)
         {
@@ -110,12 +110,12 @@ public class ProjectsController : ControllerBase
         }
     }
 
-    [HttpDelete("{id}/members/{userId}")]
-    public async Task<ActionResult> RemoveMember(Guid id, Guid userId)
+    [HttpDelete("{id}/authors/{userId}")]
+    public async Task<ActionResult> RemoveAuthor(Guid id, Guid userId)
     {
         try
         {
-            await _projectService.RemoveMemberAsync(id, userId);
+            await _projectService.RemoveAuthorAsync(id, userId);
             return NoContent();
         }
         catch (InvalidOperationException ex)

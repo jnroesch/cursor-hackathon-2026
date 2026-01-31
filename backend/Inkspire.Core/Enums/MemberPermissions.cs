@@ -39,9 +39,9 @@ public enum MemberPermissions
     Delete = 1 << 5,
 
     /// <summary>
-    /// Can manage team members (invite, remove, change roles).
+    /// Can manage authors (invite, remove, change roles).
     /// </summary>
-    ManageTeam = 1 << 6,
+    ManageAuthors = 1 << 6,
 
     /// <summary>
     /// Can manage project settings.
@@ -54,5 +54,5 @@ public enum MemberPermissions
     Contributor = View | Comment | Suggest,
     Editor = View | Comment | Suggest | Vote | Edit,
     CoAuthor = View | Comment | Suggest | Vote | Edit | Delete,
-    FullAccess = View | Comment | Suggest | Vote | Edit | Delete | ManageTeam | ManageProject
+    FullAccess = View | Comment | Suggest | Vote | Edit | Delete | ManageAuthors | ManageProject
 }

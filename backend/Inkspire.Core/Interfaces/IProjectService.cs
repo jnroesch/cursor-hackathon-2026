@@ -33,24 +33,24 @@ public interface IProjectService
     Task DeleteProjectAsync(Guid projectId);
 
     /// <summary>
-    /// Gets all members of a project.
+    /// Gets all authors of a project.
     /// </summary>
-    Task<IEnumerable<ProjectMemberDto>> GetProjectMembersAsync(Guid projectId);
+    Task<IEnumerable<ProjectAuthorDto>> GetProjectAuthorsAsync(Guid projectId);
 
     /// <summary>
-    /// Invites a user to join a project.
+    /// Invites a user to join a project as an author.
     /// </summary>
-    Task<ProjectMemberDto> InviteMemberAsync(Guid projectId, InviteMemberRequest request);
+    Task<ProjectAuthorDto> InviteAuthorAsync(Guid projectId, InviteAuthorRequest request);
 
     /// <summary>
-    /// Updates a member's role and permissions.
+    /// Updates an author's role and permissions.
     /// </summary>
-    Task<ProjectMemberDto> UpdateMemberRoleAsync(Guid projectId, Guid userId, UpdateMemberRoleRequest request);
+    Task<ProjectAuthorDto> UpdateAuthorRoleAsync(Guid projectId, Guid userId, UpdateAuthorRoleRequest request);
 
     /// <summary>
-    /// Removes a member from a project.
+    /// Removes an author from a project.
     /// </summary>
-    Task RemoveMemberAsync(Guid projectId, Guid userId);
+    Task RemoveAuthorAsync(Guid projectId, Guid userId);
 
     /// <summary>
     /// Checks if a user has the specified permission in a project.
