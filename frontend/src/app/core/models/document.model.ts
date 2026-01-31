@@ -1,6 +1,9 @@
+export type DocumentType = 'Manuscript' | 'Notes';
+
 export interface Document {
   id: string;
   projectId: string;
+  documentType: DocumentType;
   title: string;
   liveContent?: any; // TipTap JSON content
   version: number;
@@ -11,6 +14,7 @@ export interface Document {
 
 export interface DocumentSummary {
   id: string;
+  documentType: DocumentType;
   title: string;
   version: number;
   wordCount: number;
