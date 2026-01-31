@@ -93,10 +93,8 @@ export class ProjectComponent implements OnInit {
   });
 
   // Modal states
-  showCreateDocModal = signal(false);
   showTeamModal = signal(false);
   showProposalDetailModal = signal(false);
-  isCreatingDoc = signal(false);
   isInviting = signal(false);
   isVoting = signal(false);
   isLoadingProposal = signal(false);
@@ -106,7 +104,6 @@ export class ProjectComponent implements OnInit {
   selectedDocument = signal<Document | null>(null);
 
   // Form data
-  newDocTitle = '';
   inviteEmail = '';
 
   constructor(
@@ -225,34 +222,6 @@ export class ProjectComponent implements OnInit {
     if (diffDays < 7) return `${diffDays}d ago`;
     
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  }
-
-  // Document Modal
-  openCreateDocModal(): void {
-    this.newDocTitle = '';
-    this.showCreateDocModal.set(true);
-  }
-
-  closeCreateDocModal(): void {
-    this.showCreateDocModal.set(false);
-  }
-
-  createDocument(): void {
-    if (!this.newDocTitle.trim()) return;
-
-    this.isCreatingDoc.set(true);
-    this.documentService.createDocument(this.projectId, {
-      title: this.newDocTitle.trim()
-    }).subscribe({
-      next: (doc) => {
-        this.isCreatingDoc.set(false);
-        this.showCreateDocModal.set(false);
-        this.router.navigate(['/editor', doc.id]);
-      },
-      error: () => {
-        this.isCreatingDoc.set(false);
-      }
-    });
   }
 
   // Team Modal

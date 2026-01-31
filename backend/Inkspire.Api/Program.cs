@@ -81,7 +81,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:4200") // Angular dev server
+        policy.WithOrigins(
+                  "http://localhost:4200", // Angular dev server
+                  "https://inkspire-production-frontend.azurewebsites.net" // Azure production
+              )
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();

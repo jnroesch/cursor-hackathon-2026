@@ -25,6 +25,7 @@ public class DocumentService : IDocumentService
 
         return documents.Select(d => new DocumentSummaryDto(
             d.Id,
+            d.DocumentType,
             d.Title,
             d.Version,
             d.WordCount,
@@ -40,6 +41,7 @@ public class DocumentService : IDocumentService
         return new DocumentDto(
             document.Id,
             document.ProjectId,
+            document.DocumentType,
             document.Title,
             document.LiveContent,
             document.Version,
@@ -69,6 +71,7 @@ public class DocumentService : IDocumentService
         return new DocumentDto(
             document.Id,
             document.ProjectId,
+            document.DocumentType,
             document.Title,
             document.LiveContent,
             document.Version,
@@ -92,6 +95,7 @@ public class DocumentService : IDocumentService
         return new DocumentDto(
             document.Id,
             document.ProjectId,
+            document.DocumentType,
             document.Title,
             document.LiveContent,
             document.Version,

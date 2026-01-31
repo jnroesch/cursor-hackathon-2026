@@ -126,6 +126,10 @@ resource "azurerm_postgresql_flexible_server" "main" {
   # Let Azure choose an available zone automatically
 
   tags = local.common_tags
+
+  lifecycle {
+    ignore_changes = [zone]
+  }
 }
 
 resource "azurerm_postgresql_flexible_server_database" "main" {
@@ -133,6 +137,8 @@ resource "azurerm_postgresql_flexible_server_database" "main" {
   server_id = azurerm_postgresql_flexible_server.main.id
   charset   = "UTF8"
   collation = "en_US.utf8"
+
+  depends_on = [azurerm_postgresql_flexible_server.main]
 }
 
 # Firewall rule to allow Azure services
@@ -185,14 +191,14 @@ resource "azurerm_linux_web_app" "backend" {
   }
 
   app_settings = {
-    "WEBSITES_PORT"                       = "8080"
-    "ASPNETCORE_ENVIRONMENT"              = "Production"
-    "ASPNETCORE_URLS"                     = "http://+:8080"
+    "WEBSITES_PORT"                        = "8080"
+    "ASPNETCORE_ENVIRONMENT"               = "Production"
+    "ASPNETCORE_URLS"                      = "http://+:8080"
     "ConnectionStrings__DefaultConnection" = local.db_connection_string
-    "Jwt__Secret"                         = var.jwt_secret
-    "Jwt__Issuer"                         = "Inkspire"
-    "Jwt__Audience"                       = "Inkspire"
-    "Jwt__ExpirationInDays"               = "7"
+    "Jwt__Secret"                          = var.jwt_secret
+    "Jwt__Issuer"                          = "Inkspire"
+    "Jwt__Audience"                        = "Inkspire"
+    "Jwt__ExpirationInDays"                = "7"
   }
 
   tags = local.common_tags

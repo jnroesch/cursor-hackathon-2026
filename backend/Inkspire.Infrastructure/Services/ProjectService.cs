@@ -83,8 +83,36 @@ public class ProjectService : IProjectService
             JoinedAt = DateTime.UtcNow
         };
 
+        // Create default Manuscript document
+        var manuscriptDoc = new Document
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = project.Id,
+            DocumentType = DocumentType.Manuscript,
+            Title = "Manuscript",
+            Version = 1,
+            WordCount = 0,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        // Create default Notes document
+        var notesDoc = new Document
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = project.Id,
+            DocumentType = DocumentType.Notes,
+            Title = "Notes",
+            Version = 1,
+            WordCount = 0,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
         _context.Projects.Add(project);
         _context.ProjectMembers.Add(ownerMember);
+        _context.Documents.Add(manuscriptDoc);
+        _context.Documents.Add(notesDoc);
         await _context.SaveChangesAsync();
 
         var owner = await _context.Users.FindAsync(userId);
@@ -97,7 +125,7 @@ public class ProjectService : IProjectService
             project.OwnerId,
             new UserSummaryDto(owner!.Id, owner.DisplayName, owner.AvatarUrl),
             1,
-            0,
+            2, // Two documents created
             project.CreatedAt,
             project.UpdatedAt
         );

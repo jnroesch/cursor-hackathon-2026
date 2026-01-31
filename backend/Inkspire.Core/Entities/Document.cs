@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Inkspire.Core.Enums;
 
 namespace Inkspire.Core.Entities;
 
@@ -13,6 +14,11 @@ public class Document
     /// The project this document belongs to.
     /// </summary>
     public Guid ProjectId { get; set; }
+
+    /// <summary>
+    /// The type of document (Manuscript or Notes).
+    /// </summary>
+    public DocumentType DocumentType { get; set; } = DocumentType.Manuscript;
 
     /// <summary>
     /// The title of the document (e.g., "Chapter 7: The Lost Kingdom").

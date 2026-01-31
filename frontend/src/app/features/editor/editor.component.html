@@ -22,15 +22,31 @@
         <div class="text-text-muted">Loading editor...</div>
       </div>
     } @else if (document()) {
-      <!-- Editor Content (Light Background) -->
-      <div class="flex-1 bg-brand-canvas overflow-y-auto flex flex-col">
+      <!-- Editor Content (Light Background / Yellow for Notes) -->
+      <div class="flex-1 overflow-y-auto flex flex-col"
+           [class.bg-brand-canvas]="document()?.documentType !== 'Notes'"
+           [class.bg-amber-50]="document()?.documentType === 'Notes'">
         <!-- Editor Header -->
-        <header class="sticky top-0 z-10 border-b border-brand-border bg-brand-white">
+        <header class="sticky top-0 z-10 border-b border-brand-border"
+                [class.bg-brand-white]="document()?.documentType !== 'Notes'"
+                [class.bg-amber-100]="document()?.documentType === 'Notes'"
+                [class.border-amber-200]="document()?.documentType === 'Notes'">
           <!-- Top bar with title and actions -->
           <div class="flex justify-between items-center px-8 py-4">
             <div>
-              <h1 class="font-serif text-2xl text-text-primary">{{ document()?.title }}</h1>
-              <p class="text-xs text-text-muted mt-1">
+              <div class="flex items-center gap-3">
+                <h1 class="font-serif text-2xl text-text-primary">{{ document()?.title }}</h1>
+                <span class="text-xs px-2 py-0.5 rounded"
+                      [class.bg-gray-100]="document()?.documentType === 'Manuscript'"
+                      [class.text-gray-600]="document()?.documentType === 'Manuscript'"
+                      [class.bg-amber-200]="document()?.documentType === 'Notes'"
+                      [class.text-amber-800]="document()?.documentType === 'Notes'">
+                  {{ document()?.documentType }}
+                </span>
+              </div>
+              <p class="text-xs mt-1"
+                 [class.text-text-muted]="document()?.documentType !== 'Notes'"
+                 [class.text-amber-700]="document()?.documentType === 'Notes'">
                 {{ wordCount() }} words
                 @if (lastSaved()) {
                   · Saved {{ lastSaved() | date:'shortTime' }}
@@ -61,7 +77,10 @@
           </div>
 
           <!-- Formatting Toolbar -->
-          <div class="flex items-center gap-1 px-8 py-2 border-t border-brand-border bg-brand-canvas overflow-x-auto">
+          <div class="flex items-center gap-1 px-8 py-2 border-t border-brand-border overflow-x-auto"
+               [class.bg-brand-canvas]="document()?.documentType !== 'Notes'"
+               [class.bg-amber-50]="document()?.documentType === 'Notes'"
+               [class.border-amber-200]="document()?.documentType === 'Notes'">
             <!-- Text Style -->
             <div class="flex items-center gap-1 pr-3 border-r border-brand-border">
               <button 

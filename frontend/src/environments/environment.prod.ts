@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: '/api' // Will be proxied to backend in production
+  apiUrl: 'https://inkspire-production-backend.azurewebsites.net/api'
 };

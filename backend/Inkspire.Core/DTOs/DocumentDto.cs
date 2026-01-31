@@ -1,10 +1,12 @@
 using System.Text.Json;
+using Inkspire.Core.Enums;
 
 namespace Inkspire.Core.DTOs;
 
 public record DocumentDto(
     Guid Id,
     Guid ProjectId,
+    DocumentType DocumentType,
     string Title,
     JsonDocument? LiveContent,
     int Version,
@@ -15,6 +17,7 @@ public record DocumentDto(
 
 public record DocumentSummaryDto(
     Guid Id,
+    DocumentType DocumentType,
     string Title,
     int Version,
     int WordCount,
