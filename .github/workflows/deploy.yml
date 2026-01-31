@@ -48,6 +48,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Determine image tag
+        id: image-tag
+        run: |
+          # When triggered by workflow_run, use the SHA from the triggering workflow
+          # When triggered manually, use the current SHA
+          # Use short SHA (7 chars) to match docker/metadata-action format
+          if [ "${{ github.event_name }}" == "workflow_run" ]; then
+            FULL_SHA="${{ github.event.workflow_run.head_sha }}"
+          else
+            FULL_SHA="${{ github.sha }}"
+          fi
+          SHORT_SHA="${FULL_SHA:0:7}"
+          echo "tag=${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "Using image tag: ${SHORT_SHA}"
+
       - name: Log in to Azure
         uses: azure/login@v2
         with:
@@ -92,7 +107,7 @@ jobs:
           TF_VAR_environment: production
           TF_VAR_registry: ${{ env.REGISTRY }}
           TF_VAR_repository: ${{ github.repository }}
-          TF_VAR_image_tag: ${{ github.sha }}
+          TF_VAR_image_tag: ${{ steps.image-tag.outputs.tag }}
           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
           TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
           TF_VAR_ghcr_token: ${{ secrets.GITHUB_TOKEN }}
@@ -125,8 +140,8 @@ jobs:
           echo "### Environment: production" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Deployed Images:" >> $GITHUB_STEP_SUMMARY
-          echo "- Backend: \`${{ env.REGISTRY }}/${{ github.repository }}/backend:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- Frontend: \`${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend: \`${{ env.REGISTRY }}/${{ github.repository }}/backend:${{ steps.image-tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend: \`${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ steps.image-tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### URLs:" >> $GITHUB_STEP_SUMMARY
           echo "- App URL: ${{ steps.tf-outputs.outputs.app_url }}" >> $GITHUB_STEP_SUMMARY
