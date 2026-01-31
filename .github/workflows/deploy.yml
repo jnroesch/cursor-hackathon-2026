@@ -26,7 +26,7 @@ on:
 env:
   REGISTRY: ghcr.io
   AZURE_RESOURCE_GROUP: inkspire
-  AZURE_LOCATION: northeurope
+  AZURE_LOCATION: westeurope
 
 jobs:
   deploy:

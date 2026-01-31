@@ -34,7 +34,7 @@ variable "environment" {
 variable "location" {
   description = "Azure region"
   type        = string
-  default     = "northeurope"  # Changed from westeurope due to capacity constraints
+  default     = "westeurope"
 }
 
 variable "app_name" {
@@ -152,7 +152,7 @@ resource "azurerm_service_plan" "main" {
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   os_type             = "Linux"
-  sku_name            = "B1" # Basic tier - upgrade to S1/P1v2 for production
+  sku_name            = "B1" # Basic tier
 
   tags = local.common_tags
 }
