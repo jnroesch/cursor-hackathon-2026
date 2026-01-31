@@ -3,10 +3,10 @@
 terraform {
   required_version = ">= 1.6"
 
-  # Azure Storage backend for state (temporarily disabled for local import)
-  # backend "azurerm" {
-  #   # Configured via CLI arguments in the deploy workflow
-  # }
+  # Azure Storage backend for state
+  backend "azurerm" {
+    # Configured via CLI arguments in the deploy workflow
+  }
 
   required_providers {
     azurerm = {
