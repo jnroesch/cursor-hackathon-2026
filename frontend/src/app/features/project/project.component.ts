@@ -390,33 +390,71 @@ export class ProjectComponent implements OnInit {
     return extractText(content).trim();
   }
 
-  // Simple diff: split into lines and mark changes
+  // Compute diff using Longest Common Subsequence (LCS) algorithm
   getTextDiff(original: string, proposed: string): { type: 'same' | 'added' | 'removed'; text: string }[] {
-    const originalLines = original.split('\n');
-    const proposedLines = proposed.split('\n');
-    const diff: { type: 'same' | 'added' | 'removed'; text: string }[] = [];
+    const originalLines = original.split('\n').filter(line => line.length > 0 || original.includes('\n'));
+    const proposedLines = proposed.split('\n').filter(line => line.length > 0 || proposed.includes('\n'));
     
-    // Simple line-by-line comparison (not a real diff algorithm, but works for MVP)
-    const maxLen = Math.max(originalLines.length, proposedLines.length);
+    // Build LCS table
+    const lcs = this.computeLCS(originalLines, proposedLines);
     
-    for (let i = 0; i < maxLen; i++) {
-      const origLine = originalLines[i] || '';
-      const propLine = proposedLines[i] || '';
-      
-      if (origLine === propLine) {
-        if (origLine) {
-          diff.push({ type: 'same', text: origLine });
-        }
-      } else {
-        if (origLine) {
-          diff.push({ type: 'removed', text: origLine });
-        }
-        if (propLine) {
-          diff.push({ type: 'added', text: propLine });
+    // Backtrack to build the diff
+    return this.buildDiffFromLCS(originalLines, proposedLines, lcs);
+  }
+
+  // Compute LCS (Longest Common Subsequence) table
+  private computeLCS(original: string[], proposed: string[]): number[][] {
+    const m = original.length;
+    const n = proposed.length;
+    
+    // Create table with dimensions (m+1) x (n+1)
+    const table: number[][] = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+    
+    // Fill the table
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        if (original[i - 1] === proposed[j - 1]) {
+          table[i][j] = table[i - 1][j - 1] + 1;
+        } else {
+          table[i][j] = Math.max(table[i - 1][j], table[i][j - 1]);
         }
       }
     }
     
-    return diff;
+    return table;
+  }
+
+  // Build diff by backtracking through LCS table
+  private buildDiffFromLCS(
+    original: string[], 
+    proposed: string[], 
+    lcs: number[][]
+  ): { type: 'same' | 'added' | 'removed'; text: string }[] {
+    const diff: { type: 'same' | 'added' | 'removed'; text: string }[] = [];
+    
+    let i = original.length;
+    let j = proposed.length;
+    
+    // Backtrack from bottom-right corner
+    const tempDiff: { type: 'same' | 'added' | 'removed'; text: string }[] = [];
+    
+    while (i > 0 || j > 0) {
+      if (i > 0 && j > 0 && original[i - 1] === proposed[j - 1]) {
+        // Lines are the same
+        tempDiff.unshift({ type: 'same', text: original[i - 1] });
+        i--;
+        j--;
+      } else if (j > 0 && (i === 0 || lcs[i][j - 1] >= lcs[i - 1][j])) {
+        // Line was added in proposed
+        tempDiff.unshift({ type: 'added', text: proposed[j - 1] });
+        j--;
+      } else if (i > 0) {
+        // Line was removed from original
+        tempDiff.unshift({ type: 'removed', text: original[i - 1] });
+        i--;
+      }
+    }
+    
+    return tempDiff;
   }
 }
