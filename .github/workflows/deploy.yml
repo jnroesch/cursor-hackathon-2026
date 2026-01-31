@@ -110,7 +110,7 @@ jobs:
           TF_VAR_image_tag: ${{ steps.image-tag.outputs.tag }}
           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
           TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
-          TF_VAR_ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+          TF_VAR_ghcr_token: ${{ secrets.GHCR_PAT }}
 
       - name: Terraform Apply
         working-directory: ./infrastructure
