@@ -114,8 +114,8 @@ resource "azurerm_postgresql_flexible_server" "main" {
   sku_name   = "B_Standard_B1ms"
   storage_mb = 32768
   
-  # Allow Azure services
-  zone = "1"
+  # Let Azure choose an available zone automatically
+  # (zone 1 is not available in westeurope for all subscriptions)
 
   tags = local.common_tags
 }

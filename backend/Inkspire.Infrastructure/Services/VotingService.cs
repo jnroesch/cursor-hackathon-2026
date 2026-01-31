@@ -31,6 +31,10 @@ public class VotingService : IVotingService
         if (proposal.Status != ProposalStatus.Pending)
             throw new InvalidOperationException("Proposal is not pending");
 
+        // Check if user is trying to vote on their own proposal
+        if (proposal.AuthorId == userId)
+            throw new InvalidOperationException("You cannot vote on your own proposal");
+
         // Check if user is a member with voting rights
         var membership = await _context.ProjectMembers
             .FirstOrDefaultAsync(pm => pm.ProjectId == proposal.Document.ProjectId && pm.UserId == userId);
