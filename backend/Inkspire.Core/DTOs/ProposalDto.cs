@@ -11,6 +11,7 @@ public record ProposalDto(
     int BaseVersion,
     ProposalStatus Status,
     JsonDocument? Operations,
+    JsonDocument? ProposedContent,
     string? Description,
     int ApproveCount,
     int RejectCount,

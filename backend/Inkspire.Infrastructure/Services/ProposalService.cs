@@ -47,6 +47,7 @@ public class ProposalService : IProposalService
             BaseVersion = draft.BaseVersion,
             Status = ProposalStatus.Pending,
             Operations = operations,
+            ProposedContent = draft.DraftContent, // Store the full proposed content
             Description = request.Description,
             CreatedAt = DateTime.UtcNow
         };
@@ -64,6 +65,7 @@ public class ProposalService : IProposalService
             proposal.BaseVersion,
             proposal.Status,
             proposal.Operations,
+            proposal.ProposedContent,
             proposal.Description,
             0, 0, 0,
             proposal.CreatedAt,
@@ -114,6 +116,7 @@ public class ProposalService : IProposalService
             proposal.BaseVersion,
             proposal.Status,
             proposal.Operations,
+            proposal.ProposedContent,
             proposal.Description,
             proposal.Votes.Count(v => v.VoteType == VoteType.Approve),
             proposal.Votes.Count(v => v.VoteType == VoteType.Reject),
@@ -248,6 +251,7 @@ public class ProposalService : IProposalService
             proposal.BaseVersion,
             proposal.Status,
             proposal.Operations,
+            proposal.ProposedContent,
             proposal.Description,
             0, 0, 0,
             proposal.CreatedAt,

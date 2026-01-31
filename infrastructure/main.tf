@@ -34,7 +34,7 @@ variable "environment" {
 variable "location" {
   description = "Azure region"
   type        = string
-  default     = "westeurope"
+  default     = "northeurope"  # Changed from westeurope due to capacity constraints
 }
 
 variable "app_name" {

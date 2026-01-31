@@ -39,6 +39,12 @@ public class Proposal
     public JsonDocument? Operations { get; set; }
 
     /// <summary>
+    /// The full proposed content (TipTap JSON) at the time of submission.
+    /// This allows reviewers to see the complete proposed version.
+    /// </summary>
+    public JsonDocument? ProposedContent { get; set; }
+
+    /// <summary>
     /// A description of what this proposal changes.
     /// </summary>
     public string? Description { get; set; }

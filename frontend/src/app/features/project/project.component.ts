@@ -6,7 +6,7 @@ import { ProjectService } from '../../core/services/project.service';
 import { DocumentService } from '../../core/services/document.service';
 import { ProposalService } from '../../core/services/proposal.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Project, DocumentSummary, ProjectMember, ProposalSummary, VoteType } from '../../core/models';
+import { Project, DocumentSummary, ProjectMember, ProposalSummary, Proposal, VoteType, Document } from '../../core/models';
 
 // Activity item for the recent activity feed
 interface ActivityItem {
@@ -95,9 +95,15 @@ export class ProjectComponent implements OnInit {
   // Modal states
   showCreateDocModal = signal(false);
   showTeamModal = signal(false);
+  showProposalDetailModal = signal(false);
   isCreatingDoc = signal(false);
   isInviting = signal(false);
   isVoting = signal(false);
+  isLoadingProposal = signal(false);
+
+  // Proposal detail
+  selectedProposal = signal<Proposal | null>(null);
+  selectedDocument = signal<Document | null>(null);
 
   // Form data
   newDocTitle = '';
@@ -323,5 +329,94 @@ export class ProjectComponent implements OnInit {
         console.error('Failed to cast vote:', err);
       }
     });
+  }
+
+  // View proposal details
+  viewProposalDetails(proposalSummary: ProposalSummary): void {
+    this.isLoadingProposal.set(true);
+    this.showProposalDetailModal.set(true);
+
+    // Load full proposal details
+    this.proposalService.getProposal(proposalSummary.id).subscribe({
+      next: (proposal) => {
+        this.selectedProposal.set(proposal);
+        // Load the document to get original content
+        this.documentService.getDocument(proposal.documentId).subscribe({
+          next: (doc) => {
+            this.selectedDocument.set(doc);
+            this.isLoadingProposal.set(false);
+          },
+          error: () => {
+            this.isLoadingProposal.set(false);
+          }
+        });
+      },
+      error: () => {
+        this.isLoadingProposal.set(false);
+      }
+    });
+  }
+
+  closeProposalDetailModal(): void {
+    this.showProposalDetailModal.set(false);
+    this.selectedProposal.set(null);
+    this.selectedDocument.set(null);
+  }
+
+  // Extract plain text from TipTap JSON for simple diff display
+  extractTextFromContent(content: any): string {
+    if (!content) return '';
+    
+    const extractText = (node: any): string => {
+      if (!node) return '';
+      
+      if (node.type === 'text') {
+        return node.text || '';
+      }
+      
+      if (node.content && Array.isArray(node.content)) {
+        return node.content.map(extractText).join('');
+      }
+      
+      // Add line breaks for block elements
+      if (['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem', 'blockquote'].includes(node.type)) {
+        const text = node.content ? node.content.map(extractText).join('') : '';
+        return text + '\n';
+      }
+      
+      return '';
+    };
+    
+    return extractText(content).trim();
+  }
+
+  // Simple diff: split into lines and mark changes
+  getTextDiff(original: string, proposed: string): { type: 'same' | 'added' | 'removed'; text: string }[] {
+    const originalLines = original.split('\n');
+    const proposedLines = proposed.split('\n');
+    const diff: { type: 'same' | 'added' | 'removed'; text: string }[] = [];
+    
+    // Simple line-by-line comparison (not a real diff algorithm, but works for MVP)
+    const maxLen = Math.max(originalLines.length, proposedLines.length);
+    
+    for (let i = 0; i < maxLen; i++) {
+      const origLine = originalLines[i] || '';
+      const propLine = proposedLines[i] || '';
+      
+      if (origLine === propLine) {
+        if (origLine) {
+          diff.push({ type: 'same', text: origLine });
+        }
+      } else {
+        if (origLine) {
+          diff.push({ type: 'removed', text: origLine });
+        }
+        if (propLine) {
+          diff.push({ type: 'added', text: propLine });
+        }
+      }
+    }
+    
+    return diff;
   }
 }

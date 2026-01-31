@@ -20,6 +20,7 @@ export interface Proposal {
   baseVersion: number;
   status: ProposalStatus;
   operations?: any;
+  proposedContent?: any;
   description?: string;
   approveCount: number;
   rejectCount: number;
