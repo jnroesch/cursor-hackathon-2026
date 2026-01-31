@@ -1,0 +1,25 @@
+# Git
+.git
+.gitignore
+
+# Build output
+**/bin/
+**/obj/
+**/out/
+
+# IDE
+.vs/
+.vscode/
+*.suo
+*.user
+*.sln.docstates
+
+# Test results
+**/TestResults/
+
+# NuGet
+*.nupkg
+
+# Misc
+*.log
+*.tmp

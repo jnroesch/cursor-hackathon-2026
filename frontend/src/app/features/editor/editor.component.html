@@ -1,0 +1,104 @@
+<!-- Scharf Design System - Editor View -->
+<div class="min-h-screen flex">
+  <!-- Left Navigation Rail -->
+  <nav class="nav-rail flex flex-col items-center py-6 fixed h-full z-10">
+    <div class="mb-8">
+      <a routerLink="/dashboard" class="font-serif text-2xl text-text-primary">I</a>
+    </div>
+    
+    <div class="flex-1 flex flex-col items-center space-y-2">
+      <a routerLink="/dashboard" class="nav-rail-item" title="Dashboard">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+        </svg>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main Editor Area -->
+  <main class="flex-1 ml-rail flex">
+    @if (isLoading()) {
+      <div class="flex-1 flex items-center justify-center">
+        <div class="text-text-muted">Loading editor...</div>
+      </div>
+    } @else if (document()) {
+      <!-- Editor Content (Light Background) -->
+      <div class="flex-1 bg-brand-canvas overflow-y-auto">
+        <!-- Editor Header -->
+        <header class="sticky top-0 z-10 border-b border-brand-border bg-brand-white px-8 py-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h1 class="font-serif text-2xl text-text-primary">{{ document()?.title }}</h1>
+              <p class="text-xs text-text-muted mt-1">
+                Version {{ document()?.version }} · {{ document()?.wordCount }} words
+                @if (draft()?.baseVersion !== document()?.version) {
+                  · <span class="text-amber-600">Draft based on older version</span>
+                }
+              </p>
+            </div>
+            <div class="flex items-center space-x-3">
+              <button class="btn btn-secondary text-sm py-2">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                </svg>
+                Save Draft
+              </button>
+              <button class="btn btn-primary text-sm py-2">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                </svg>
+                Submit for Review
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <!-- Editor Placeholder -->
+        <div class="prose max-w-3xl mx-auto py-12 px-8">
+          <div class="border border-dashed border-brand-border p-8 text-center">
+            <svg class="w-12 h-12 mx-auto text-text-muted mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            <h3 class="font-serif text-xl text-text-primary mb-2">TipTap Editor Integration</h3>
+            <p class="text-text-muted text-sm">
+              The rich text editor will be integrated here using TipTap. 
+              This area will display the document content with full editing capabilities.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel (Dark Background) -->
+      <aside class="sidebar-right w-80 flex-shrink-0 overflow-y-auto border-l border-brand-border">
+        <div class="p-6">
+          <h2 class="subheading text-text-inverse/60 mb-4">Change Requests</h2>
+          
+          <!-- Empty State -->
+          <div class="text-center py-8">
+            <svg class="w-10 h-10 mx-auto text-text-inverse/30 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+            </svg>
+            <p class="text-text-inverse/60 text-sm">No pending change requests</p>
+          </div>
+
+          <!-- Divider -->
+          <div class="my-6 h-px bg-text-inverse/10"></div>
+
+          <!-- History Section -->
+          <h2 class="subheading text-text-inverse/60 mb-4">Recent Activity</h2>
+          
+          <div class="text-center py-8">
+            <p class="text-text-inverse/60 text-sm">No recent activity</p>
+          </div>
+        </div>
+      </aside>
+    } @else {
+      <div class="flex-1 flex items-center justify-center">
+        <div class="text-center">
+          <h2 class="font-serif text-xl text-text-primary mb-2">Document not found</h2>
+          <a routerLink="/dashboard" class="text-text-muted hover:text-text-primary underline">Return to dashboard</a>
+        </div>
+      </div>
+    }
+  </main>
+</div>

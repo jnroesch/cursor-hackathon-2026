@@ -1,0 +1,22 @@
+# Inkspire - Docker Compose Override for Local Development
+# Run with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+version: '3.8'
+
+services:
+  # PostgreSQL Database - same as production
+  db:
+    ports:
+      - "5432:5432"
+
+  # .NET Backend API - development mode
+  backend:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+
+  # Frontend - development build (uses environment.ts instead of environment.prod.ts)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        BUILD_CONFIGURATION: development

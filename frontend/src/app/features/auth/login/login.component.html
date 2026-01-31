@@ -1,0 +1,109 @@
+<!-- Scharf Design System - Login Page -->
+<div class="min-h-screen flex">
+  <!-- Left side - Branding -->
+  <div class="hidden lg:flex lg:w-1/2 bg-brand-panel text-text-inverse flex-col justify-between p-12">
+    <div>
+      <h1 class="font-serif text-4xl font-normal tracking-tight">Inkspire</h1>
+      <p class="mt-2 text-text-inverse/60 text-sm">Collaborative Writing Platform</p>
+    </div>
+    
+    <div class="max-w-md">
+      <blockquote class="font-serif text-2xl leading-relaxed">
+        "Write together, create masterpieces. Every voice matters in the collaborative journey."
+      </blockquote>
+      <p class="mt-4 text-text-inverse/60 text-sm uppercase tracking-widest">— The Inkspire Team</p>
+    </div>
+
+    <div class="text-text-inverse/40 text-xs">
+      © 2026 Inkspire. All rights reserved.
+    </div>
+  </div>
+
+  <!-- Right side - Login Form -->
+  <div class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-brand-canvas">
+    <div class="w-full max-w-md">
+      <!-- Mobile Logo -->
+      <div class="lg:hidden mb-12 text-center">
+        <h1 class="font-serif text-3xl text-text-primary">Inkspire</h1>
+      </div>
+
+      <div class="mb-8">
+        <p class="subheading">Welcome back</p>
+        <h2 class="font-serif text-display mt-2 text-text-primary">Sign In</h2>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 text-sm">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="space-y-6">
+          <div>
+            <label for="email" class="label">Email Address</label>
+            <input 
+              type="email" 
+              id="email" 
+              formControlName="email"
+              class="input"
+              placeholder="you@example.com"
+            />
+            @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+              <p class="mt-1 text-red-600 text-xs">Please enter a valid email address</p>
+            }
+          </div>
+
+          <div>
+            <label for="password" class="label">Password</label>
+            <input 
+              type="password" 
+              id="password" 
+              formControlName="password"
+              class="input"
+              placeholder="••••••••"
+            />
+            @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+              <p class="mt-1 text-red-600 text-xs">Password must be at least 8 characters</p>
+            }
+          </div>
+
+          <div class="flex items-center justify-between">
+            <label class="flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                formControlName="rememberMe"
+                class="w-4 h-4 border-brand-border rounded-none"
+              />
+              <span class="ml-2 text-sm text-text-muted">Remember me</span>
+            </label>
+            <a routerLink="/auth/forgot-password" class="text-sm text-text-primary underline underline-offset-4 hover:opacity-80">
+              Forgot password?
+            </a>
+          </div>
+
+          <button 
+            type="submit" 
+            class="btn btn-primary w-full"
+            [disabled]="loginForm.invalid || isLoading()"
+          >
+            @if (isLoading()) {
+              <span>Signing in...</span>
+            } @else {
+              <span>Sign In</span>
+            }
+          </button>
+        </div>
+      </form>
+
+      <div class="mt-8 text-center">
+        <p class="text-sm text-text-muted">
+          Don't have an account? 
+          <a routerLink="/auth/register" class="text-text-primary underline underline-offset-4 hover:opacity-80">
+            Create one
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

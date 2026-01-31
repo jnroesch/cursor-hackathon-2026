@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.nx/
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test results
+coverage/
+
+# Misc
+*.tmp
+.DS_Store
