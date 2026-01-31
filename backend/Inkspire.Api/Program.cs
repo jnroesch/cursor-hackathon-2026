@@ -23,7 +23,12 @@ builder.Services.AddOpenApi();
 
 // Configure PostgreSQL with EF Core
 builder.Services.AddDbContext<InkspireDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    // Suppress pending model changes warning to allow app to start
+    options.ConfigureWarnings(warnings => 
+        warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+});
 
 // Configure ASP.NET Core Identity
 builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>

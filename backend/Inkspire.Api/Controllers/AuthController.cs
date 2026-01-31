@@ -98,6 +98,22 @@ public class AuthController : ControllerBase
         }
     }
 
+    [Authorize]
+    [HttpPut("profile")]
+    public async Task<ActionResult<UserDto>> UpdateProfile([FromBody] UpdateProfileRequest request)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var user = await _authService.UpdateProfileAsync(userId, request);
+            return Ok(user);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
     private Guid GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
