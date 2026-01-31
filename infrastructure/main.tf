@@ -72,6 +72,12 @@ variable "jwt_secret" {
   sensitive   = true
 }
 
+variable "ghcr_token" {
+  description = "GitHub Container Registry token (PAT or GITHUB_TOKEN)"
+  type        = string
+  sensitive   = true
+}
+
 # =============================================================================
 # Locals
 # =============================================================================
@@ -250,7 +256,7 @@ resource "azurerm_container_app" "backend" {
 
   secret {
     name  = "ghcr-token"
-    value = "" # Will be set via environment variable or manually
+    value = var.ghcr_token
   }
 }
 
@@ -302,7 +308,7 @@ resource "azurerm_container_app" "frontend" {
 
   secret {
     name  = "ghcr-token"
-    value = "" # Will be set via environment variable or manually
+    value = var.ghcr_token
   }
 }
 
