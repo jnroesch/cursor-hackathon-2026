@@ -8,7 +8,8 @@ import {
   LoginRequest, 
   RegisterRequest, 
   ForgotPasswordRequest, 
-  ResetPasswordRequest 
+  ResetPasswordRequest,
+  UpdateProfileRequest
 } from '../models';
 import { environment } from '../../../environments/environment';
 
@@ -96,7 +97,22 @@ export class AuthService {
   getCurrentUser(): Observable<User> {
     return this.http.get<User>(`${this.baseUrl}/me`)
       .pipe(
-        tap(user => this.currentUserSignal.set(user))
+        tap(user => {
+          this.currentUserSignal.set(user);
+          // Update stored user in localStorage
+          localStorage.setItem(USER_KEY, JSON.stringify(user));
+        })
+      );
+  }
+
+  updateProfile(request: UpdateProfileRequest): Observable<User> {
+    return this.http.put<User>(`${this.baseUrl}/profile`, request)
+      .pipe(
+        tap(user => {
+          this.currentUserSignal.set(user);
+          // Update stored user in localStorage
+          localStorage.setItem(USER_KEY, JSON.stringify(user));
+        })
       );
   }
 

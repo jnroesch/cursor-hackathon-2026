@@ -18,6 +18,11 @@ export const appRoutes: Route[] = [
     loadChildren: () => import('./features/dashboard/dashboard.routes').then(m => m.DASHBOARD_ROUTES)
   },
   {
+    path: 'profile',
+    canActivate: [authGuard],
+    loadChildren: () => import('./features/profile/profile.routes').then(m => m.PROFILE_ROUTES)
+  },
+  {
     path: 'project/:projectId',
     canActivate: [authGuard],
     loadChildren: () => import('./features/project/project.routes').then(m => m.PROJECT_ROUTES)

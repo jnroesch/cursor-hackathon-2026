@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using Inkspire.Core.DTOs;
 using Inkspire.Core.Entities;
 using Inkspire.Core.Interfaces;
@@ -128,14 +129,64 @@ public class AuthService : IAuthService
             throw new InvalidOperationException("User not found");
         }
 
+        string[]? roles = null;
+        if (!string.IsNullOrEmpty(user.Roles))
+        {
+            try
+            {
+                roles = JsonSerializer.Deserialize<string[]>(user.Roles);
+            }
+            catch
+            {
+                // If deserialization fails, return null
+                roles = null;
+            }
+        }
+
         return new UserDto(
             user.Id,
             user.Email ?? "",
             user.UserName ?? "",
             user.DisplayName,
             user.AvatarUrl,
-            user.CreatedAt
+            user.CreatedAt,
+            roles,
+            user.FavoriteMedia,
+            user.AboutMe
         );
+    }
+
+    public async Task<UserDto> UpdateProfileAsync(Guid userId, UpdateProfileRequest request)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null)
+        {
+            throw new InvalidOperationException("User not found");
+        }
+
+        user.DisplayName = request.DisplayName;
+        user.FavoriteMedia = request.FavoriteMedia;
+        user.AboutMe = request.AboutMe;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        // Serialize roles array to JSON string
+        if (request.Roles != null && request.Roles.Length > 0)
+        {
+            user.Roles = JsonSerializer.Serialize(request.Roles);
+        }
+        else
+        {
+            user.Roles = null;
+        }
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            throw new InvalidOperationException($"Failed to update profile: {errors}");
+        }
+
+        return await GetCurrentUserAsync(userId);
     }
 
     private async Task<AuthResponse> GenerateAuthResponse(User user)
@@ -144,13 +195,29 @@ public class AuthService : IAuthService
         var expirationDays = int.Parse(_configuration["Jwt:ExpirationInDays"] ?? "7");
         var expiresAt = DateTime.UtcNow.AddDays(expirationDays);
 
+        string[]? roles = null;
+        if (!string.IsNullOrEmpty(user.Roles))
+        {
+            try
+            {
+                roles = JsonSerializer.Deserialize<string[]>(user.Roles);
+            }
+            catch
+            {
+                roles = null;
+            }
+        }
+
         var userDto = new UserDto(
             user.Id,
             user.Email ?? "",
             user.UserName ?? "",
             user.DisplayName,
             user.AvatarUrl,
-            user.CreatedAt
+            user.CreatedAt,
+            roles,
+            user.FavoriteMedia,
+            user.AboutMe
         );
 
         return new AuthResponse(token, expiresAt, userDto);

@@ -29,12 +29,19 @@ public class InkspireDbContext : IdentityDbContext<User, IdentityRole<Guid>, Gui
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        
+        // Suppress pending model changes warning temporarily
+        // This allows the app to start even if migrations aren't perfectly synced
+        // Remove this once migrations are properly generated
 
         // User configuration
         modelBuilder.Entity<User>(entity =>
         {
             entity.Property(e => e.DisplayName).HasMaxLength(200);
             entity.Property(e => e.AvatarUrl).HasMaxLength(500);
+            entity.Property(e => e.Roles).HasMaxLength(2000);
+            entity.Property(e => e.FavoriteMedia).HasMaxLength(2000);
+            entity.Property(e => e.AboutMe).HasMaxLength(5000);
         });
 
         // Project configuration

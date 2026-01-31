@@ -33,3 +33,10 @@ public record ChangePasswordRequest(
     string CurrentPassword,
     string NewPassword
 );
+
+public record UpdateProfileRequest(
+    string DisplayName,
+    string[]? Roles,
+    string? FavoriteMedia,
+    string? AboutMe
+);

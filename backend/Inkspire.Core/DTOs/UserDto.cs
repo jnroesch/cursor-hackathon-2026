@@ -6,7 +6,10 @@ public record UserDto(
     string UserName,
     string DisplayName,
     string? AvatarUrl,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    string[]? Roles,
+    string? FavoriteMedia,
+    string? AboutMe
 );
 
 public record UserSummaryDto(

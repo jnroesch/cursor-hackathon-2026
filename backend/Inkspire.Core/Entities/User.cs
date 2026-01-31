@@ -27,6 +27,21 @@ public class User : IdentityUser<Guid>
     /// </summary>
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+    /// <summary>
+    /// User's selected roles (stored as JSON array).
+    /// </summary>
+    public string? Roles { get; set; }
+
+    /// <summary>
+    /// User's favorite books, movies, etc.
+    /// </summary>
+    public string? FavoriteMedia { get; set; }
+
+    /// <summary>
+    /// About myself, writing philosophy, fun fact, or alike.
+    /// </summary>
+    public string? AboutMe { get; set; }
+
     // Navigation properties
     public ICollection<ProjectMember> ProjectMemberships { get; set; } = new List<ProjectMember>();
     public ICollection<Project> OwnedProjects { get; set; } = new List<Project>();

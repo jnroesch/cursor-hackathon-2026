@@ -36,4 +36,9 @@ public interface IAuthService
     /// Gets the current user's profile.
     /// </summary>
     Task<UserDto> GetCurrentUserAsync(Guid userId);
+
+    /// <summary>
+    /// Updates the current user's profile.
+    /// </summary>
+    Task<UserDto> UpdateProfileAsync(Guid userId, UpdateProfileRequest request);
 }

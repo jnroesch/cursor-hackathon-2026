@@ -5,6 +5,9 @@ export interface User {
   displayName: string;
   avatarUrl?: string;
   createdAt: string;
+  roles?: string[];
+  favoriteMedia?: string;
+  aboutMe?: string;
 }
 
 export interface UserSummary {
@@ -40,4 +43,11 @@ export interface ResetPasswordRequest {
   email: string;
   token: string;
   newPassword: string;
+}
+
+export interface UpdateProfileRequest {
+  displayName: string;
+  roles?: string[];
+  favoriteMedia?: string;
+  aboutMe?: string;
 }
