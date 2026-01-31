@@ -42,6 +42,7 @@ This repository includes pre-configured MCP (Model Context Protocol) servers for
 
 1. **GitHub MCP Server** - Enables AI-assisted interactions with GitHub repositories, issues, pull requests, and more.
 2. **Figma MCP Server** - Provides design context from Figma files directly in your development workflow.
+3. **Miro MCP Server** - Generate diagrams on Miro boards and generate code from board content.
 
 ### Setup Instructions
 
@@ -64,3 +65,12 @@ cp mcp.json.sample mcp.json
 2. Go to **Settings** → **MCP** tab
 3. Click **Connect** next to Figma
 4. Authorize via OAuth when prompted with your Figma account
+
+#### Miro MCP Server
+
+1. Open Cursor with this repository
+2. Go to **Settings** → **MCP** tab
+3. Click **Connect** next to Miro
+4. Authorize via OAuth and select the Miro team containing your boards
+
+> **Note:** Enterprise Plan users must have Miro's MCP Server enabled by their admin first.
