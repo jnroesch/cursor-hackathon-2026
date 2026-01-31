@@ -4,7 +4,8 @@ import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProjectService } from '../../core/services/project.service';
 import { DocumentService } from '../../core/services/document.service';
-import { Project, DocumentSummary, ProjectMember } from '../../core/models';
+import { ProposalService } from '../../core/services/proposal.service';
+import { Project, DocumentSummary, ProjectMember, ProposalSummary } from '../../core/models';
 
 @Component({
   selector: 'app-project',
@@ -17,6 +18,7 @@ export class ProjectComponent implements OnInit {
   project = signal<Project | null>(null);
   documents = signal<DocumentSummary[]>([]);
   members = signal<ProjectMember[]>([]);
+  pendingProposals = signal<ProposalSummary[]>([]);
   isLoading = signal(true);
   projectId: string = '';
 
@@ -34,7 +36,8 @@ export class ProjectComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private projectService: ProjectService,
-    private documentService: DocumentService
+    private documentService: DocumentService,
+    private proposalService: ProposalService
   ) {}
 
   ngOnInit(): void {
@@ -60,11 +63,45 @@ export class ProjectComponent implements OnInit {
     this.documentService.getProjectDocuments(this.projectId).subscribe({
       next: (documents) => {
         this.documents.set(documents);
-        this.isLoading.set(false);
+        this.loadPendingProposals();
       },
       error: () => {
         this.isLoading.set(false);
       }
+    });
+  }
+
+  loadPendingProposals(): void {
+    // Load pending proposals for all documents in the project
+    const docs = this.documents();
+    if (docs.length === 0) {
+      this.isLoading.set(false);
+      return;
+    }
+
+    // For now, load proposals for the first document
+    // In a real app, you'd aggregate across all documents or have a project-level endpoint
+    const allProposals: ProposalSummary[] = [];
+    let completed = 0;
+
+    docs.forEach(doc => {
+      this.proposalService.getProposals(doc.id, 'Pending' as any).subscribe({
+        next: (proposals) => {
+          allProposals.push(...proposals);
+          completed++;
+          if (completed === docs.length) {
+            this.pendingProposals.set(allProposals);
+            this.isLoading.set(false);
+          }
+        },
+        error: () => {
+          completed++;
+          if (completed === docs.length) {
+            this.pendingProposals.set(allProposals);
+            this.isLoading.set(false);
+          }
+        }
+      });
     });
   }
 
@@ -73,6 +110,22 @@ export class ProjectComponent implements OnInit {
       return `${(count / 1000).toFixed(1)}k`;
     }
     return count.toString();
+  }
+
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
   // Document Modal

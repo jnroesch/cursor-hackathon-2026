@@ -1,0 +1,6 @@
+{
+    "name": "github-actions-main",
+    "issuer": "https://token.actions.githubusercontent.com",
+    "subject": "repo:jnroesch/cursor-hackathon-2026:environment:production",
+    "audiences": ["api://AzureADTokenExchange"]
+  }

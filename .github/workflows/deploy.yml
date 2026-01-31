@@ -9,9 +9,9 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to deploy to'
+        description: "Environment to deploy to"
         required: true
-        default: 'production'
+        default: "production"
         type: choice
         options:
           - production
@@ -25,7 +25,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  AZURE_RESOURCE_GROUP: inkspire-rg
+  AZURE_RESOURCE_GROUP: inkspire
   AZURE_LOCATION: westeurope
 
 jobs:
@@ -36,13 +36,13 @@ jobs:
     if: >
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
-    
+
     environment: production
-    
+
     permissions:
       contents: read
       packages: read
-      id-token: write  # Required for OIDC authentication
+      id-token: write # Required for OIDC authentication
 
     steps:
       - name: Checkout code
@@ -65,7 +65,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: '1.6'
+          terraform_version: "1.6"
 
       - name: Terraform Init
         working-directory: ./infrastructure

@@ -35,7 +35,10 @@ export class ProposalService {
   }
 
   createProposal(documentId: string, description?: string): Observable<Proposal> {
-    return this.http.post<Proposal>(`${this.baseUrl}/documents/${documentId}/proposals`, { description });
+    return this.http.post<Proposal>(`${this.baseUrl}/documents/${documentId}/proposals`, { 
+      documentId,
+      description 
+    });
   }
 
   rebaseProposal(proposalId: string): Observable<Proposal> {
