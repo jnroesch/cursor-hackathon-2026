@@ -1,0 +1,63 @@
+/* Pitches specific styles */
+
+/* Line clamp utility for truncating text */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Card hover effect */
+.card {
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+/* Smooth transitions */
+button, a, span {
+  transition: all 0.2s ease;
+}
+
+/* Tab underline animation */
+.tab-underline {
+  position: relative;
+}
+
+.tab-underline::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--text-main);
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+
+.tab-underline.active::after {
+  transform: scaleX(1);
+}
+
+/* Match score badge colors */
+.match-excellent {
+  background-color: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.match-good {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border-color: #bfdbfe;
+}
+
+.match-fair {
+  background-color: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}

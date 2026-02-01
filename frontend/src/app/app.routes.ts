@@ -38,6 +38,11 @@ export const appRoutes: Route[] = [
     loadChildren: () => import('./features/marketplace/marketplace.routes').then(m => m.MARKETPLACE_ROUTES)
   },
   {
+    path: 'pitches',
+    canActivate: [authGuard],
+    loadChildren: () => import('./features/pitches/pitches.routes').then(m => m.PITCHES_ROUTES)
+  },
+  {
     path: '**',
     redirectTo: 'dashboard'
   }
