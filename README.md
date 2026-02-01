@@ -8,13 +8,11 @@ A collaborative writing platform where authors work together on books, articles,
 
 ### Demo Credentials
 
-You can register a new account or use these seeded demo accounts:
+You can register a new account or use this seeded demo account:
 
-| Email | Password | Description |
-|-------|----------|-------------|
-| alice@example.com | Password123! | Author with multiple projects |
-| bob@example.com | Password123! | Collaborator on various projects |
-| charlie@example.com | Password123! | New author |
+| Email                 | Password | Description                   |
+| --------------------- | -------- | ----------------------------- |
+| eleanor@inkspire.demo | Test123! | Author with multiple projects |
 
 ---
 
@@ -22,41 +20,42 @@ You can register a new account or use these seeded demo accounts:
 
 ### Backend
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| .NET | 9.0 | Runtime & SDK |
-| ASP.NET Core | 9.0 | Web API framework |
-| Entity Framework Core | 9.0 | ORM & database migrations |
-| ASP.NET Core Identity | 9.0 | User authentication & authorization |
-| PostgreSQL | 16 | Primary database |
-| OpenAI API | GPT-4o | AI consistency checking for proposals |
+| Technology            | Version | Purpose                               |
+| --------------------- | ------- | ------------------------------------- |
+| .NET                  | 9.0     | Runtime & SDK                         |
+| ASP.NET Core          | 9.0     | Web API framework                     |
+| Entity Framework Core | 9.0     | ORM & database migrations             |
+| ASP.NET Core Identity | 9.0     | User authentication & authorization   |
+| PostgreSQL            | 16      | Primary database                      |
+| OpenAI API            | GPT-4o  | AI consistency checking for proposals |
 
 ### Frontend
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Angular | 21.1 | Frontend framework |
-| Nx | 22.4 | Monorepo workspace management |
-| TypeScript | 5.9 | Type-safe JavaScript |
-| Tailwind CSS | 3.4 | Utility-first CSS framework |
-| TipTap | 3.18 | Rich text editor (ProseMirror-based) |
-| RxJS | 7.8 | Reactive programming |
+| Technology   | Version | Purpose                              |
+| ------------ | ------- | ------------------------------------ |
+| Angular      | 21.1    | Frontend framework                   |
+| Nx           | 22.4    | Monorepo workspace management        |
+| TypeScript   | 5.9     | Type-safe JavaScript                 |
+| Tailwind CSS | 3.4     | Utility-first CSS framework          |
+| TipTap       | 3.18    | Rich text editor (ProseMirror-based) |
+| RxJS         | 7.8     | Reactive programming                 |
 
 ### Infrastructure & DevOps
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Docker | Latest | Containerization |
-| Docker Compose | Latest | Multi-container orchestration |
-| GitHub Actions | - | CI/CD pipelines |
-| Terraform | >= 1.6 | Infrastructure as Code |
-| Azure App Service | - | Production hosting |
-| Azure PostgreSQL | Flexible Server | Managed database |
-| GHCR | - | Container registry |
+| Technology        | Version         | Purpose                       |
+| ----------------- | --------------- | ----------------------------- |
+| Docker            | Latest          | Containerization              |
+| Docker Compose    | Latest          | Multi-container orchestration |
+| GitHub Actions    | -               | CI/CD pipelines               |
+| Terraform         | >= 1.6          | Infrastructure as Code        |
+| Azure App Service | -               | Production hosting            |
+| Azure PostgreSQL  | Flexible Server | Managed database              |
+| GHCR              | -               | Container registry            |
 
 ### Design System
 
 Inkspire uses the **Scharf Design System** - a high-contrast, minimalist design with:
+
 - Editorial serif typography (Playfair Display)
 - Clean sans-serif body text (Inter)
 - Monochromatic palette (#F4F4F4 canvas, #0D0D0D panels)
@@ -69,16 +68,15 @@ Inkspire uses the **Scharf Design System** - a high-contrast, minimalist design 
 
 ### Fully Functional Pages
 
-| Page | Route | Description |
-|------|-------|-------------|
-| **Login** | `/auth/login` | User authentication with JWT tokens |
-| **Register** | `/auth/register` | New user registration |
-| **Forgot Password** | `/auth/forgot-password` | Password reset request (UI only) |
-| **Dashboard** | `/dashboard` | View all projects, create new projects |
-| **Project View** | `/project/:id` | Project management with tabs (Manuscript, Notes, Review, Configure) |
-| **Editor** | `/editor/:documentId` | Full-featured TipTap rich text editor with formatting toolbar |
-| **Proposal Diff View** | `/editor/:documentId/proposal/:proposalId` | View proposed changes with inline diff highlighting |
-| **Profile** | `/profile` | User profile management (display name, roles, bio) |
+| Page                   | Route                                      | Description                                                         |
+| ---------------------- | ------------------------------------------ | ------------------------------------------------------------------- |
+| **Login**              | `/auth/login`                              | User authentication with JWT tokens                                 |
+| **Register**           | `/auth/register`                           | New user registration                                               |
+| **Forgot Password**    | `/auth/forgot-password`                    | Password reset request (UI only)                                    |
+| **Dashboard**          | `/dashboard`                               | View all projects, create new projects                              |
+| **Project View**       | `/project/:id`                             | Project management with tabs (Manuscript, Notes, Review, Configure) |
+| **Editor**             | `/editor/:documentId`                      | Full-featured TipTap rich text editor with formatting toolbar       |
+| **Proposal Diff View** | `/editor/:documentId/proposal/:proposalId` | View proposed changes with inline diff highlighting                 |
 
 ### Key Functional Features
 
@@ -93,10 +91,11 @@ Inkspire uses the **Scharf Design System** - a high-contrast, minimalist design 
 
 ### Decorative/Placeholder Pages
 
-| Page | Route | Description |
-|------|-------|-------------|
-| **Marketplace** | `/marketplace` | Book marketplace UI with mock data - no backend integration |
-| **Pitches** | `/pitches` | Project pitch board UI with mock data - no backend integration |
+| Page            | Route          | Description                                                    |
+| --------------- | -------------- | -------------------------------------------------------------- |
+| **Marketplace** | `/marketplace` | Book marketplace UI with mock data - no backend integration    |
+| **Pitches**     | `/pitches`     | Project pitch board UI with mock data - no backend integration |
+| **Profile**     | `/profile`     | User profile management (display name, roles, bio)             |
 
 These pages showcase the design system and planned future features but do not connect to any backend APIs. All data displayed is hardcoded mock data.
 
@@ -126,6 +125,7 @@ cp .env.example .env.local
 ```
 
 Edit `.env.local` to configure:
+
 ```env
 # OpenAI API Key (optional - for AI consistency checking)
 # Get yours from: https://platform.openai.com/api-keys
@@ -136,26 +136,10 @@ OpenAI__ApiKey=sk-your-api-key-here
 ### Step 3: Start the Database
 
 ```bash
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d db
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 ```
 
-### Step 4: Run the Backend
-
-```bash
-cd backend
-dotnet restore
-dotnet run --project Inkspire.Api
-```
-
-The backend API will be available at `https://localhost:7001`
-
-### Step 5: Run the Frontend
-
-```bash
-cd frontend
-npm install
-npm start
-```
+The backend API will be available at `https://localhost:5000`
 
 The frontend will be available at `http://localhost:4200`
 
@@ -219,6 +203,7 @@ Access the application at `http://localhost`
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/register` - Create new account
 - `POST /api/auth/login` - Sign in
 - `POST /api/auth/forgot-password` - Request password reset
@@ -226,6 +211,7 @@ Access the application at `http://localhost`
 - `PUT /api/auth/profile` - Update user profile
 
 ### Projects
+
 - `GET /api/projects` - List user's projects
 - `POST /api/projects` - Create new project
 - `GET /api/projects/{id}` - Get project details
@@ -237,6 +223,7 @@ Access the application at `http://localhost`
 - `POST /api/projects/{id}/vote-delete` - Vote to delete project
 
 ### Documents
+
 - `GET /api/projects/{id}/documents` - List documents
 - `POST /api/projects/{id}/documents` - Create document
 - `GET /api/documents/{id}` - Get document
@@ -245,6 +232,7 @@ Access the application at `http://localhost`
 - `POST /api/documents/{id}/consistency-check` - Run AI consistency check
 
 ### Proposals
+
 - `GET /api/documents/{id}/proposals` - List proposals
 - `POST /api/documents/{id}/proposals` - Submit proposal
 - `GET /api/proposals/{id}` - Get proposal details
@@ -252,28 +240,3 @@ Access the application at `http://localhost`
 - `GET /api/proposals/{id}/votes/summary` - Get voting summary
 
 ---
-
-## Environment Variables
-
-### Backend
-```env
-ConnectionStrings__DefaultConnection=Host=localhost;Database=inkspire;Username=inkspire;Password=inkspire_dev
-Jwt__Secret=your-256-bit-secret-key
-Jwt__Issuer=Inkspire
-Jwt__Audience=Inkspire
-Jwt__ExpirationInDays=7
-OpenAI__ApiKey=sk-your-openai-api-key  # Optional
-OpenAI__Model=gpt-4o
-OpenAI__MaxTokens=4096
-```
-
-### Frontend
-```env
-API_URL=https://localhost:7001
-```
-
----
-
-## License
-
-MIT License - See LICENSE file for details.
