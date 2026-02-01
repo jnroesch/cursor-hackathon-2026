@@ -1,11 +1,13 @@
 import { Component, OnInit, OnDestroy, signal, computed, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, ActivatedRoute, Router } from '@angular/router';
+import { RouterModule, ActivatedRoute, Router, ParamMap } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { DocumentService } from '../../core/services/document.service';
 import { ProposalService } from '../../core/services/proposal.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Document as InkspireDocument, UserDraft, Proposal, VoteType } from '../../core/models';
+import { ConsistencyCheckResult, ConsistencyIssue, IssueSeverity, IssueCategory } from '../../core/models/proposal.model';
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -38,6 +40,24 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
   showProposalModal = signal(false);
   proposalDescription = '';
   
+  // AI Consistency check
+  isCheckingConsistency = signal(false);
+  consistencyResult = signal<ConsistencyCheckResult | null>(null);
+  consistencyCheckCompleted = signal(false);
+  
+  // Computed property for issue counts
+  errorCount = computed(() => {
+    const result = this.consistencyResult();
+    if (!result) return 0;
+    return result.issues.filter(i => i.severity === IssueSeverity.Error).length;
+  });
+  
+  warningCount = computed(() => {
+    const result = this.consistencyResult();
+    if (!result) return 0;
+    return result.issues.filter(i => i.severity === IssueSeverity.Warning).length;
+  });
+  
   // Proposal view mode
   proposalId: string = '';
   proposal = signal<Proposal | null>(null);
@@ -58,6 +78,7 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
   editor: Editor | null = null;
   
   private autoSaveInterval: any;
+  private routeSubscription: Subscription | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -68,12 +89,32 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.documentId = this.route.snapshot.paramMap.get('documentId') || '';
-    this.proposalId = this.route.snapshot.paramMap.get('proposalId') || '';
-    
-    if (this.documentId) {
-      this.loadDocument();
-    }
+    // Subscribe to route parameter changes to handle navigation between proposal/document views
+    this.routeSubscription = this.route.paramMap.subscribe((params: ParamMap) => {
+      const newDocumentId = params.get('documentId') || '';
+      const newProposalId = params.get('proposalId') || '';
+      
+      const documentChanged = newDocumentId !== this.documentId;
+      const proposalChanged = newProposalId !== this.proposalId;
+      
+      this.documentId = newDocumentId;
+      this.proposalId = newProposalId;
+      
+      // If navigating away from proposal view (proposalId cleared), reset proposal state
+      if (proposalChanged && !newProposalId) {
+        this.proposal.set(null);
+        // Destroy and recreate editor for fresh state
+        if (this.editor) {
+          this.editor.destroy();
+          this.editor = null;
+        }
+      }
+      
+      if (this.documentId && (documentChanged || proposalChanged)) {
+        this.isLoading.set(true);
+        this.loadDocument();
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -86,6 +127,9 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (this.autoSaveInterval) {
       clearInterval(this.autoSaveInterval);
+    }
+    if (this.routeSubscription) {
+      this.routeSubscription.unsubscribe();
     }
   }
 
@@ -317,11 +361,59 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
   // Submit for review modal
   openProposalModal(): void {
     this.proposalDescription = '';
+    this.consistencyResult.set(null);
+    this.consistencyCheckCompleted.set(false);
     this.showProposalModal.set(true);
+    
+    // Start the AI consistency check
+    this.runConsistencyCheck();
   }
 
   closeProposalModal(): void {
     this.showProposalModal.set(false);
+    this.consistencyResult.set(null);
+    this.consistencyCheckCompleted.set(false);
+  }
+  
+  runConsistencyCheck(): void {
+    if (!this.editor || this.isCheckingConsistency()) return;
+    
+    this.isCheckingConsistency.set(true);
+    const content = this.editor.getJSON();
+    
+    // First save the draft, then run the consistency check
+    this.documentService.saveDraft(this.documentId, { content }).subscribe({
+      next: () => {
+        this.documentService.checkConsistency(this.documentId).subscribe({
+          next: (result) => {
+            this.consistencyResult.set(result);
+            this.consistencyCheckCompleted.set(true);
+            this.isCheckingConsistency.set(false);
+          },
+          error: () => {
+            // If check fails, still allow submission
+            this.consistencyCheckCompleted.set(true);
+            this.isCheckingConsistency.set(false);
+          }
+        });
+      },
+      error: () => {
+        this.consistencyCheckCompleted.set(true);
+        this.isCheckingConsistency.set(false);
+      }
+    });
+  }
+  
+  // Helper to get category icon
+  getCategoryIcon(category: IssueCategory): string {
+    switch (category) {
+      case IssueCategory.Character: return 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z';
+      case IssueCategory.World: return 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
+      case IssueCategory.Plot: return 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z';
+      case IssueCategory.Timeline: return 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z';
+      case IssueCategory.Style: return 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z';
+      default: return 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
+    }
   }
 
   submitForReview(): void {
@@ -334,6 +426,7 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
     this.documentService.saveDraft(this.documentId, { content }).subscribe({
       next: () => {
         // Now create the proposal - the backend will compute the diff from the draft
+        // and run a final AI consistency check
         this.proposalService.createProposal(
           this.documentId, 
           this.proposalDescription.trim() || undefined
@@ -365,10 +458,16 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
     }).subscribe({
       next: () => {
         this.isVoting.set(false);
-        // Reload proposal to get updated vote counts
+        // Reload proposal to get updated status
         this.proposalService.getProposal(this.proposalId).subscribe({
           next: (proposal) => {
             this.proposal.set(proposal);
+            
+            // If proposal was accepted or rejected, navigate to the document to show the result
+            if (proposal.status === 'Accepted' || proposal.status === 'Rejected') {
+              // Navigate to the document view (without proposal) to show the merged/current content
+              this.router.navigate(['/editor', this.documentId]);
+            }
           }
         });
       },

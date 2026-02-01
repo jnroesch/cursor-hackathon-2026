@@ -49,6 +49,12 @@ public class Proposal
     /// </summary>
     public string? Description { get; set; }
 
+    /// <summary>
+    /// AI-generated feedback about consistency issues, stored as JSONB.
+    /// Contains issues found, summary, and timestamp of the check.
+    /// </summary>
+    public JsonDocument? AIFeedback { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>

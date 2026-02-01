@@ -9,6 +9,7 @@
 # AZURE_STORAGE_ACCOUNT  - Storage account name for Terraform state
 # DB_PASSWORD            - PostgreSQL admin password
 # JWT_SECRET             - JWT signing secret (min 256 bits)
+# OPENAI_API_KEY         - OpenAI API key for AI consistency checking (optional)
 #
 # Setup instructions:
 #

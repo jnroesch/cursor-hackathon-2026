@@ -78,6 +78,13 @@ variable "ghcr_token" {
   sensitive   = true
 }
 
+variable "openai_api_key" {
+  description = "OpenAI API key for AI consistency checking"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 # =============================================================================
 # Locals
 # =============================================================================
@@ -199,6 +206,9 @@ resource "azurerm_linux_web_app" "backend" {
     "Jwt__Issuer"                          = "Inkspire"
     "Jwt__Audience"                        = "Inkspire"
     "Jwt__ExpirationInDays"                = "7"
+    "OpenAI__ApiKey"                       = var.openai_api_key
+    "OpenAI__Model"                        = "gpt-4o"
+    "OpenAI__MaxTokens"                    = "4096"
   }
 
   tags = local.common_tags

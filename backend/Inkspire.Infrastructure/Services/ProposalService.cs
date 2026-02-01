@@ -12,11 +12,16 @@ public class ProposalService : IProposalService
 {
     private readonly InkspireDbContext _context;
     private readonly IChangeTrackingService _changeTrackingService;
+    private readonly IAIConsistencyService _aiConsistencyService;
 
-    public ProposalService(InkspireDbContext context, IChangeTrackingService changeTrackingService)
+    public ProposalService(
+        InkspireDbContext context, 
+        IChangeTrackingService changeTrackingService,
+        IAIConsistencyService aiConsistencyService)
     {
         _context = context;
         _changeTrackingService = changeTrackingService;
+        _aiConsistencyService = aiConsistencyService;
     }
 
     public async Task<ProposalDto> CreateProposalAsync(Guid userId, CreateProposalRequest request)
@@ -39,21 +44,58 @@ public class ProposalService : IProposalService
                 draft.DraftContent);
         }
 
+        // Run AI consistency check and convert to JsonDocument for storage
+        var consistencyResult = await _aiConsistencyService.CheckConsistencyAsync(
+            document.ProjectId,
+            request.DocumentId,
+            draft.DraftContent);
+        
+        var aiFeedbackJson = JsonSerializer.Serialize(new
+        {
+            issues = consistencyResult.Issues.Select(i => new
+            {
+                severity = i.Severity.ToString(),
+                category = i.Category.ToString(),
+                description = i.Description,
+                suggestion = i.Suggestion,
+                location = i.Location
+            }),
+            summary = consistencyResult.Summary,
+            checkedAt = consistencyResult.CheckedAt
+        });
+        var aiFeedback = JsonDocument.Parse(aiFeedbackJson);
+
         var proposal = new Proposal
         {
             Id = Guid.NewGuid(),
             DocumentId = request.DocumentId,
             AuthorId = userId,
-            BaseVersion = draft.BaseVersion,
+            BaseVersion = document.Version, // Use document's current version to avoid stale draft BaseVersion
             Status = ProposalStatus.Pending,
             Operations = operations,
             ProposedContent = draft.DraftContent, // Store the full proposed content
             Description = request.Description,
+            AIFeedback = aiFeedback, // Store AI consistency check results
             CreatedAt = DateTime.UtcNow
         };
 
         _context.Proposals.Add(proposal);
         await _context.SaveChangesAsync();
+
+        // Check if solo author (no other eligible voters) - auto-approve
+        var eligibleVoters = await _context.ProjectMembers
+            .Where(m => m.ProjectId == document.ProjectId 
+                     && m.Role != ProjectRole.Viewer 
+                     && m.UserId != userId)
+            .CountAsync();
+
+        if (eligibleVoters == 0)
+        {
+            // Solo author - auto-merge the proposal
+            await TryMergeProposalAsync(proposal.Id);
+            // Reload proposal to get updated status
+            await _context.Entry(proposal).ReloadAsync();
+        }
 
         var author = await _context.Users.FindAsync(userId);
 
@@ -67,6 +109,7 @@ public class ProposalService : IProposalService
             proposal.Operations,
             proposal.ProposedContent,
             proposal.Description,
+            proposal.AIFeedback,
             0, 0, 0,
             proposal.CreatedAt,
             proposal.ResolvedAt
@@ -92,6 +135,7 @@ public class ProposalService : IProposalService
             new UserSummaryDto(p.Author.Id, p.Author.DisplayName, p.Author.AvatarUrl),
             p.Status,
             p.Description,
+            p.AIFeedback,
             p.Votes.Count(v => v.VoteType == VoteType.Approve),
             p.Votes.Count(v => v.VoteType == VoteType.Reject),
             p.CreatedAt
@@ -118,6 +162,7 @@ public class ProposalService : IProposalService
             proposal.Operations,
             proposal.ProposedContent,
             proposal.Description,
+            proposal.AIFeedback,
             proposal.Votes.Count(v => v.VoteType == VoteType.Approve),
             proposal.Votes.Count(v => v.VoteType == VoteType.Reject),
             proposal.Comments.Count,
@@ -204,9 +249,16 @@ public class ProposalService : IProposalService
             return new MergeResult(false, 0, "Proposal has conflicts and needs to be rebased");
         }
 
-        // Apply the changes
-        if (proposal.Operations != null && proposal.Document.LiveContent != null)
+        // Apply the changes - use ProposedContent directly as it contains the full desired state
+        if (proposal.ProposedContent != null)
         {
+            // Clone the JsonDocument to ensure EF Core detects the change
+            var json = proposal.ProposedContent.RootElement.GetRawText();
+            proposal.Document.LiveContent = JsonDocument.Parse(json);
+        }
+        else if (proposal.Operations != null && proposal.Document.LiveContent != null)
+        {
+            // Fallback to applying operations if no proposed content
             var newContent = await _changeTrackingService.ApplyOperationsAsync(
                 proposal.Document.LiveContent,
                 proposal.Operations
@@ -219,7 +271,26 @@ public class ProposalService : IProposalService
         proposal.Status = ProposalStatus.Accepted;
         proposal.ResolvedAt = DateTime.UtcNow;
 
+        // Explicitly mark the document as modified to ensure EF Core saves the LiveContent change
+        _context.Entry(proposal.Document).State = EntityState.Modified;
+
         await _context.SaveChangesAsync();
+
+        // Update all drafts for this document to sync with the new live content
+        var drafts = await _context.UserDrafts
+            .Where(d => d.DocumentId == proposal.DocumentId)
+            .ToListAsync();
+        foreach (var draft in drafts)
+        {
+            draft.BaseVersion = proposal.Document.Version;
+            // Also update draft content to match the new live content so users see the merged result
+            draft.DraftContent = proposal.Document.LiveContent;
+            draft.LastEditedAt = DateTime.UtcNow;
+        }
+        if (drafts.Any())
+        {
+            await _context.SaveChangesAsync();
+        }
 
         return new MergeResult(true, proposal.Document.Version, null);
     }
@@ -253,6 +324,7 @@ public class ProposalService : IProposalService
             proposal.Operations,
             proposal.ProposedContent,
             proposal.Description,
+            proposal.AIFeedback,
             0, 0, 0,
             proposal.CreatedAt,
             proposal.ResolvedAt

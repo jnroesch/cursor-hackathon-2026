@@ -33,6 +33,11 @@ export const appRoutes: Route[] = [
     loadChildren: () => import('./features/editor/editor.routes').then(m => m.EDITOR_ROUTES)
   },
   {
+    path: 'marketplace',
+    canActivate: [authGuard],
+    loadChildren: () => import('./features/marketplace/marketplace.routes').then(m => m.MARKETPLACE_ROUTES)
+  },
+  {
     path: '**',
     redirectTo: 'dashboard'
   }
