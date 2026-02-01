@@ -334,21 +334,26 @@
       
       <div class="p-6">
         <!-- Invite Form -->
-        <div class="flex gap-3 mb-6">
-          <input 
-            type="email" 
-            [(ngModel)]="inviteEmail"
-            class="form-input flex-1"
-            placeholder="Enter email to invite"
-            (keyup.enter)="inviteMember()"
-          />
-          <button 
-            (click)="inviteMember()" 
-            [disabled]="!inviteEmail.trim() || isInviting()"
-            class="btn btn-primary"
-          >
-            {{ isInviting() ? 'Inviting...' : 'Invite' }}
-          </button>
+        <div class="mb-6">
+          <div class="flex gap-3">
+            <input 
+              type="email" 
+              [(ngModel)]="inviteEmail"
+              class="form-input flex-1"
+              placeholder="Enter email to invite"
+              (keyup.enter)="inviteMember()"
+            />
+            <button 
+              (click)="inviteMember()" 
+              [disabled]="!inviteEmail.trim() || isInviting()"
+              class="btn btn-primary"
+            >
+              {{ isInviting() ? 'Inviting...' : 'Invite' }}
+            </button>
+          </div>
+          @if (inviteError()) {
+            <p class="text-red-600 text-sm mt-2">{{ inviteError() }}</p>
+          }
         </div>
         
         <!-- Members List -->

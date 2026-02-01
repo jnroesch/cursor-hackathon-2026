@@ -101,6 +101,7 @@ export class ProjectComponent implements OnInit {
   showTeamModal = signal(false);
   isInviting = signal(false);
   isVoting = signal(false);
+  inviteError = signal<string | null>(null);
 
   // Form data
   inviteEmail = '';
@@ -228,6 +229,7 @@ export class ProjectComponent implements OnInit {
   // Team Modal
   openTeamModal(): void {
     this.inviteEmail = '';
+    this.inviteError.set(null);
     this.loadMembers();
     this.showTeamModal.set(true);
   }
@@ -248,6 +250,7 @@ export class ProjectComponent implements OnInit {
     if (!this.inviteEmail.trim()) return;
 
     this.isInviting.set(true);
+    this.inviteError.set(null);
     this.projectService.inviteMember(this.projectId, {
       email: this.inviteEmail.trim(),
       role: 'Contributor'
@@ -257,8 +260,9 @@ export class ProjectComponent implements OnInit {
         this.inviteEmail = '';
         this.loadMembers();
       },
-      error: () => {
+      error: (err) => {
         this.isInviting.set(false);
+        this.inviteError.set(err.error?.error || 'Failed to invite member. Make sure the email is registered.');
       }
     });
   }

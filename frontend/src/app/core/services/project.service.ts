@@ -39,14 +39,14 @@ export class ProjectService {
   }
 
   getMembers(projectId: string): Observable<ProjectMember[]> {
-    return this.http.get<ProjectMember[]>(`${this.baseUrl}/${projectId}/members`);
+    return this.http.get<ProjectMember[]>(`${this.baseUrl}/${projectId}/authors`);
   }
 
   inviteMember(projectId: string, request: InviteMemberRequest): Observable<ProjectMember> {
-    return this.http.post<ProjectMember>(`${this.baseUrl}/${projectId}/members`, request);
+    return this.http.post<ProjectMember>(`${this.baseUrl}/${projectId}/authors`, request);
   }
 
   removeMember(projectId: string, userId: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${projectId}/members/${userId}`);
+    return this.http.delete<void>(`${this.baseUrl}/${projectId}/authors/${userId}`);
   }
 }
