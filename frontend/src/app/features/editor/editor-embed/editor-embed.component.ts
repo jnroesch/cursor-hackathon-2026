@@ -1,10 +1,11 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ElementRef, ViewChild, AfterViewInit, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ElementRef, ViewChild, AfterViewInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DocumentService } from '../../../core/services/document.service';
 import { ProposalService } from '../../../core/services/proposal.service';
 import { Document as InkspireDocument, UserDraft } from '../../../core/models';
+import { ConsistencyCheckResult, IssueSeverity } from '../../../core/models/proposal.model';
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -40,6 +41,24 @@ export class EditorEmbedComponent implements OnInit, AfterViewInit, OnDestroy {
   showProposalModal = signal(false);
   proposalDescription = '';
   isSubmitting = signal(false);
+  
+  // AI Consistency check
+  isCheckingConsistency = signal(false);
+  consistencyResult = signal<ConsistencyCheckResult | null>(null);
+  consistencyCheckCompleted = signal(false);
+  
+  // Computed property for issue counts
+  errorCount = computed(() => {
+    const result = this.consistencyResult();
+    if (!result) return 0;
+    return result.issues.filter(i => i.severity === IssueSeverity.Error).length;
+  });
+  
+  warningCount = computed(() => {
+    const result = this.consistencyResult();
+    if (!result) return 0;
+    return result.issues.filter(i => i.severity === IssueSeverity.Warning).length;
+  });
   
   editor: Editor | null = null;
   private autoSaveInterval: any;
@@ -196,11 +215,47 @@ export class EditorEmbedComponent implements OnInit, AfterViewInit, OnDestroy {
 
   openProposalModal(): void {
     this.proposalDescription = '';
+    this.consistencyResult.set(null);
+    this.consistencyCheckCompleted.set(false);
     this.showProposalModal.set(true);
+    
+    // Start the AI consistency check
+    this.runConsistencyCheck();
   }
 
   closeProposalModal(): void {
     this.showProposalModal.set(false);
+    this.consistencyResult.set(null);
+    this.consistencyCheckCompleted.set(false);
+  }
+  
+  runConsistencyCheck(): void {
+    if (!this.editor || this.isCheckingConsistency()) return;
+    
+    this.isCheckingConsistency.set(true);
+    const content = this.editor.getJSON();
+    
+    // First save the draft, then run the consistency check
+    this.documentService.saveDraft(this.documentId, { content }).subscribe({
+      next: () => {
+        this.documentService.checkConsistency(this.documentId).subscribe({
+          next: (result) => {
+            this.consistencyResult.set(result);
+            this.consistencyCheckCompleted.set(true);
+            this.isCheckingConsistency.set(false);
+          },
+          error: () => {
+            // If check fails, still allow submission
+            this.consistencyCheckCompleted.set(true);
+            this.isCheckingConsistency.set(false);
+          }
+        });
+      },
+      error: () => {
+        this.consistencyCheckCompleted.set(true);
+        this.isCheckingConsistency.set(false);
+      }
+    });
   }
 
   submitForReview(): void {
