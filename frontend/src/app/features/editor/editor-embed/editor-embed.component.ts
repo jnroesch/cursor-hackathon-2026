@@ -244,4 +244,17 @@ export class EditorEmbedComponent implements OnInit, AfterViewInit, OnDestroy {
       this.editor?.chain().focus().run();
     }
   }
+
+  getTabDescription(): string {
+    const docType = this.document()?.documentType;
+    
+    switch (docType) {
+      case 'Manuscript':
+        return 'Here you write everything that ends up in the final book when a project is finished and published.';
+      case 'Notes':
+        return 'Here you write anything that supports other authors, but that does not end up in the final book when the project is published.';
+      default:
+        return 'Review submissions and vote to accept or reject them.';
+    }
+  }
 }

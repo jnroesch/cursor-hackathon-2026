@@ -1,8 +1,11 @@
 /* Review Tab Styles */
 .review-tab-container {
-  padding: 2rem;
   background-color: #F4F4F4; /* brand-canvas */
   min-height: calc(100vh - 200px);
+}
+
+.review-tab-container > div:not(:first-child) {
+  padding: 2rem;
 }
 
 .card {
