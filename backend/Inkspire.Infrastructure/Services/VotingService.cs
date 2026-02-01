@@ -134,15 +134,18 @@ public class VotingService : IVotingService
         if (proposal == null)
             throw new InvalidOperationException("Proposal not found");
 
-        // Get eligible voters (non-viewers)
+        // Get eligible voters (non-viewers, excluding the proposal author who can't vote on their own proposal)
         var eligibleVoters = proposal.Document.Project.Members
-            .Where(m => m.Role != ProjectRole.Viewer)
+            .Where(m => m.Role != ProjectRole.Viewer && m.UserId != proposal.AuthorId)
             .ToList();
 
         var approveCount = proposal.Votes.Count(v => v.VoteType == VoteType.Approve);
         var rejectCount = proposal.Votes.Count(v => v.VoteType == VoteType.Reject);
         var pendingCount = eligibleVoters.Count - approveCount - rejectCount;
-        var threshold = (eligibleVoters.Count / 2) + 1;
+        
+        // Threshold is at least 50% (ceiling of half) - e.g., 1 of 1, 1 of 2, 2 of 3
+        // With 0 eligible voters (solo author), threshold is 0 (auto-approve)
+        var threshold = (eligibleVoters.Count + 1) / 2;
 
         var majorityReached = approveCount >= threshold || rejectCount >= threshold;
         VoteType? majorityResult = null;

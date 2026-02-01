@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy, signal, computed, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, ActivatedRoute, Router } from '@angular/router';
+import { RouterModule, ActivatedRoute, Router, ParamMap } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { DocumentService } from '../../core/services/document.service';
 import { ProposalService } from '../../core/services/proposal.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -58,6 +59,7 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
   editor: Editor | null = null;
   
   private autoSaveInterval: any;
+  private routeSubscription: Subscription | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -68,12 +70,32 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.documentId = this.route.snapshot.paramMap.get('documentId') || '';
-    this.proposalId = this.route.snapshot.paramMap.get('proposalId') || '';
-    
-    if (this.documentId) {
-      this.loadDocument();
-    }
+    // Subscribe to route parameter changes to handle navigation between proposal/document views
+    this.routeSubscription = this.route.paramMap.subscribe((params: ParamMap) => {
+      const newDocumentId = params.get('documentId') || '';
+      const newProposalId = params.get('proposalId') || '';
+      
+      const documentChanged = newDocumentId !== this.documentId;
+      const proposalChanged = newProposalId !== this.proposalId;
+      
+      this.documentId = newDocumentId;
+      this.proposalId = newProposalId;
+      
+      // If navigating away from proposal view (proposalId cleared), reset proposal state
+      if (proposalChanged && !newProposalId) {
+        this.proposal.set(null);
+        // Destroy and recreate editor for fresh state
+        if (this.editor) {
+          this.editor.destroy();
+          this.editor = null;
+        }
+      }
+      
+      if (this.documentId && (documentChanged || proposalChanged)) {
+        this.isLoading.set(true);
+        this.loadDocument();
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -86,6 +108,9 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (this.autoSaveInterval) {
       clearInterval(this.autoSaveInterval);
+    }
+    if (this.routeSubscription) {
+      this.routeSubscription.unsubscribe();
     }
   }
 
@@ -365,10 +390,16 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
     }).subscribe({
       next: () => {
         this.isVoting.set(false);
-        // Reload proposal to get updated vote counts
+        // Reload proposal to get updated status
         this.proposalService.getProposal(this.proposalId).subscribe({
           next: (proposal) => {
             this.proposal.set(proposal);
+            
+            // If proposal was accepted or rejected, navigate to the document to show the result
+            if (proposal.status === 'Accepted' || proposal.status === 'Rejected') {
+              // Navigate to the document view (without proposal) to show the merged/current content
+              this.router.navigate(['/editor', this.documentId]);
+            }
           }
         });
       },
