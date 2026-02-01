@@ -6,7 +6,7 @@ import { ProjectService } from '../../core/services/project.service';
 import { DocumentService } from '../../core/services/document.service';
 import { ProposalService } from '../../core/services/proposal.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Project, DocumentSummary, ProjectMember, ProposalSummary, Proposal, VoteType, Document } from '../../core/models';
+import { Project, DocumentSummary, ProjectMember, ProposalSummary, VoteType } from '../../core/models';
 
 // Activity item for the recent activity feed
 interface ActivityItem {
@@ -17,6 +17,11 @@ interface ActivityItem {
   author?: string;
   timestamp: string;
   icon: 'document' | 'proposal' | 'check' | 'x' | 'user';
+}
+
+// Extended proposal summary with document ID for navigation
+interface ProposalWithDocument extends ProposalSummary {
+  documentId: string;
 }
 
 @Component({
@@ -30,8 +35,8 @@ export class ProjectComponent implements OnInit {
   project = signal<Project | null>(null);
   documents = signal<DocumentSummary[]>([]);
   members = signal<ProjectMember[]>([]);
-  pendingProposals = signal<ProposalSummary[]>([]);
-  allProposals = signal<ProposalSummary[]>([]);
+  pendingProposals = signal<ProposalWithDocument[]>([]);
+  allProposals = signal<ProposalWithDocument[]>([]);
   isLoading = signal(true);
   projectId: string = '';
 
@@ -94,14 +99,8 @@ export class ProjectComponent implements OnInit {
 
   // Modal states
   showTeamModal = signal(false);
-  showProposalDetailModal = signal(false);
   isInviting = signal(false);
   isVoting = signal(false);
-  isLoadingProposal = signal(false);
-
-  // Proposal detail
-  selectedProposal = signal<Proposal | null>(null);
-  selectedDocument = signal<Document | null>(null);
 
   // Form data
   inviteEmail = '';
@@ -116,7 +115,7 @@ export class ProjectComponent implements OnInit {
   ) {}
 
   // Check if current user is the author of a proposal
-  isOwnProposal(proposal: ProposalSummary): boolean {
+  isOwnProposal(proposal: ProposalWithDocument): boolean {
     const currentUser = this.authService.currentUser();
     return currentUser?.id === proposal.author.id;
   }
@@ -169,14 +168,16 @@ export class ProjectComponent implements OnInit {
       return;
     }
 
-    const allProposals: ProposalSummary[] = [];
+    const allProposals: ProposalWithDocument[] = [];
     let completed = 0;
 
     docs.forEach(doc => {
       // Get all proposals (not filtered by status)
       this.proposalService.getProposals(doc.id).subscribe({
         next: (proposals) => {
-          allProposals.push(...proposals);
+          // Add documentId to each proposal for navigation
+          const proposalsWithDoc = proposals.map(p => ({ ...p, documentId: doc.id }));
+          allProposals.push(...proposalsWithDoc);
           completed++;
           if (completed === docs.length) {
             this.allProposals.set(allProposals);
@@ -300,130 +301,8 @@ export class ProjectComponent implements OnInit {
     });
   }
 
-  // View proposal details
-  viewProposalDetails(proposalSummary: ProposalSummary): void {
-    this.isLoadingProposal.set(true);
-    this.showProposalDetailModal.set(true);
-
-    // Load full proposal details
-    this.proposalService.getProposal(proposalSummary.id).subscribe({
-      next: (proposal) => {
-        this.selectedProposal.set(proposal);
-        // Load the document to get original content
-        this.documentService.getDocument(proposal.documentId).subscribe({
-          next: (doc) => {
-            this.selectedDocument.set(doc);
-            this.isLoadingProposal.set(false);
-          },
-          error: () => {
-            this.isLoadingProposal.set(false);
-          }
-        });
-      },
-      error: () => {
-        this.isLoadingProposal.set(false);
-      }
-    });
-  }
-
-  closeProposalDetailModal(): void {
-    this.showProposalDetailModal.set(false);
-    this.selectedProposal.set(null);
-    this.selectedDocument.set(null);
-  }
-
-  // Extract plain text from TipTap JSON for simple diff display
-  extractTextFromContent(content: any): string {
-    if (!content) return '';
-    
-    const extractText = (node: any): string => {
-      if (!node) return '';
-      
-      if (node.type === 'text') {
-        return node.text || '';
-      }
-      
-      if (node.content && Array.isArray(node.content)) {
-        return node.content.map(extractText).join('');
-      }
-      
-      // Add line breaks for block elements
-      if (['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem', 'blockquote'].includes(node.type)) {
-        const text = node.content ? node.content.map(extractText).join('') : '';
-        return text + '\n';
-      }
-      
-      return '';
-    };
-    
-    return extractText(content).trim();
-  }
-
-  // Compute diff using Longest Common Subsequence (LCS) algorithm
-  getTextDiff(original: string, proposed: string): { type: 'same' | 'added' | 'removed'; text: string }[] {
-    const originalLines = original.split('\n').filter(line => line.length > 0 || original.includes('\n'));
-    const proposedLines = proposed.split('\n').filter(line => line.length > 0 || proposed.includes('\n'));
-    
-    // Build LCS table
-    const lcs = this.computeLCS(originalLines, proposedLines);
-    
-    // Backtrack to build the diff
-    return this.buildDiffFromLCS(originalLines, proposedLines, lcs);
-  }
-
-  // Compute LCS (Longest Common Subsequence) table
-  private computeLCS(original: string[], proposed: string[]): number[][] {
-    const m = original.length;
-    const n = proposed.length;
-    
-    // Create table with dimensions (m+1) x (n+1)
-    const table: number[][] = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
-    
-    // Fill the table
-    for (let i = 1; i <= m; i++) {
-      for (let j = 1; j <= n; j++) {
-        if (original[i - 1] === proposed[j - 1]) {
-          table[i][j] = table[i - 1][j - 1] + 1;
-        } else {
-          table[i][j] = Math.max(table[i - 1][j], table[i][j - 1]);
-        }
-      }
-    }
-    
-    return table;
-  }
-
-  // Build diff by backtracking through LCS table
-  private buildDiffFromLCS(
-    original: string[], 
-    proposed: string[], 
-    lcs: number[][]
-  ): { type: 'same' | 'added' | 'removed'; text: string }[] {
-    const diff: { type: 'same' | 'added' | 'removed'; text: string }[] = [];
-    
-    let i = original.length;
-    let j = proposed.length;
-    
-    // Backtrack from bottom-right corner
-    const tempDiff: { type: 'same' | 'added' | 'removed'; text: string }[] = [];
-    
-    while (i > 0 || j > 0) {
-      if (i > 0 && j > 0 && original[i - 1] === proposed[j - 1]) {
-        // Lines are the same
-        tempDiff.unshift({ type: 'same', text: original[i - 1] });
-        i--;
-        j--;
-      } else if (j > 0 && (i === 0 || lcs[i][j - 1] >= lcs[i - 1][j])) {
-        // Line was added in proposed
-        tempDiff.unshift({ type: 'added', text: proposed[j - 1] });
-        j--;
-      } else if (i > 0) {
-        // Line was removed from original
-        tempDiff.unshift({ type: 'removed', text: original[i - 1] });
-        i--;
-      }
-    }
-    
-    return tempDiff;
+  // View proposal details - navigate to editor in diff view mode
+  viewProposalDetails(proposal: ProposalWithDocument): void {
+    this.router.navigate(['/editor', proposal.documentId, 'proposal', proposal.id]);
   }
 }

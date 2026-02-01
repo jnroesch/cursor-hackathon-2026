@@ -1,16 +1,19 @@
-import { Component, OnInit, OnDestroy, signal, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DocumentService } from '../../core/services/document.service';
 import { ProposalService } from '../../core/services/proposal.service';
-import { Document as InkspireDocument, UserDraft } from '../../core/models';
+import { AuthService } from '../../core/services/auth.service';
+import { Document as InkspireDocument, UserDraft, Proposal, VoteType } from '../../core/models';
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import Highlight from '@tiptap/extension-highlight';
+import { DiffInserted, DiffDeleted } from './diff-marks';
+import { computeDiffContent } from './diff-utils';
 
 @Component({
   selector: 'app-editor',
@@ -35,6 +38,21 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
   showProposalModal = signal(false);
   proposalDescription = '';
   
+  // Proposal view mode
+  proposalId: string = '';
+  proposal = signal<Proposal | null>(null);
+  isVoting = signal(false);
+  
+  // Computed signal to check if we're in proposal view mode
+  isProposalView = computed(() => !!this.proposalId && !!this.proposal());
+  
+  // Check if current user is the author of the proposal
+  isOwnProposal = computed(() => {
+    const currentUser = this.authService.currentUser();
+    const proposal = this.proposal();
+    return currentUser?.id === proposal?.authorId;
+  });
+  
   documentId: string = '';
   projectId: string = '';
   editor: Editor | null = null;
@@ -45,11 +63,14 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private documentService: DocumentService,
-    private proposalService: ProposalService
+    private proposalService: ProposalService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.documentId = this.route.snapshot.paramMap.get('documentId') || '';
+    this.proposalId = this.route.snapshot.paramMap.get('proposalId') || '';
+    
     if (this.documentId) {
       this.loadDocument();
     }
@@ -73,7 +94,32 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (doc) => {
         this.document.set(doc);
         this.projectId = doc.projectId;
-        this.loadDraft();
+        
+        // If viewing a proposal, load it instead of the draft
+        if (this.proposalId) {
+          this.loadProposal();
+        } else {
+          this.loadDraft();
+        }
+      },
+      error: () => {
+        this.isLoading.set(false);
+      }
+    });
+  }
+  
+  loadProposal(): void {
+    this.proposalService.getProposal(this.proposalId).subscribe({
+      next: (proposal) => {
+        this.proposal.set(proposal);
+        this.isLoading.set(false);
+        
+        // Compute diff content and initialize editor in read-only mode
+        const originalContent = this.document()?.liveContent;
+        const proposedContent = proposal.proposedContent;
+        const diffContent = computeDiffContent(originalContent, proposedContent);
+        
+        setTimeout(() => this.initDiffEditor(diffContent), 0);
       },
       error: () => {
         this.isLoading.set(false);
@@ -135,12 +181,50 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.updateWordCount(this.editor);
     
-    // Auto-save every 30 seconds
-    this.autoSaveInterval = setInterval(() => {
-      if (this.hasUnsavedChanges()) {
-        this.saveDraft();
+    // Auto-save every 30 seconds (only in edit mode)
+    if (!this.proposalId) {
+      this.autoSaveInterval = setInterval(() => {
+        if (this.hasUnsavedChanges()) {
+          this.saveDraft();
+        }
+      }, 30000);
+    }
+  }
+  
+  initDiffEditor(content: any): void {
+    if (this.editor) {
+      this.editor.destroy();
+    }
+
+    this.editor = new Editor({
+      element: this.editorElement?.nativeElement,
+      extensions: [
+        StarterKit.configure({
+          heading: {
+            levels: [1, 2, 3]
+          }
+        }),
+        Underline,
+        TextAlign.configure({
+          types: ['heading', 'paragraph']
+        }),
+        Highlight.configure({
+          multicolor: false
+        }),
+        // Add diff mark extensions
+        DiffInserted,
+        DiffDeleted
+      ],
+      content: content || '<p></p>',
+      editable: false, // Read-only mode for diff view
+      editorProps: {
+        attributes: {
+          class: 'prose prose-lg max-w-none focus:outline-none min-h-[500px]'
+        }
       }
-    }, 30000);
+    });
+
+    this.updateWordCount(this.editor);
   }
 
   updateWordCount(editor: Editor): void {
@@ -271,8 +355,54 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  // Voting on proposals
+  voteOnProposal(voteType: 'Approve' | 'Reject'): void {
+    if (!this.proposalId || this.isVoting()) return;
+    
+    this.isVoting.set(true);
+    this.proposalService.castVote(this.proposalId, { 
+      vote: voteType as VoteType 
+    }).subscribe({
+      next: () => {
+        this.isVoting.set(false);
+        // Reload proposal to get updated vote counts
+        this.proposalService.getProposal(this.proposalId).subscribe({
+          next: (proposal) => {
+            this.proposal.set(proposal);
+          }
+        });
+      },
+      error: () => {
+        this.isVoting.set(false);
+      }
+    });
+  }
+
+  // Format date for display
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
   // Navigation
   goBack(): void {
+    // In proposal view mode, don't prompt for unsaved changes
+    if (this.isProposalView()) {
+      this.router.navigate(['/project', this.projectId]);
+      return;
+    }
+    
     if (this.hasUnsavedChanges()) {
       if (confirm('You have unsaved changes. Do you want to save before leaving?')) {
         this.saveDraft();

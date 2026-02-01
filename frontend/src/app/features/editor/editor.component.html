@@ -43,231 +43,278 @@
                       [class.text-amber-800]="document()?.documentType === 'Notes'">
                   {{ document()?.documentType }}
                 </span>
+                @if (isProposalView()) {
+                  <span class="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-800">
+                    Viewing Proposal
+                  </span>
+                }
               </div>
-              <p class="text-xs mt-1"
-                 [class.text-text-muted]="document()?.documentType !== 'Notes'"
-                 [class.text-amber-700]="document()?.documentType === 'Notes'">
-                {{ wordCount() }} words
-                @if (lastSaved()) {
-                  · Saved {{ lastSaved() | date:'shortTime' }}
-                }
-                @if (hasUnsavedChanges()) {
-                  · <span class="text-amber-600">Unsaved changes</span>
-                }
-              </p>
+              @if (isProposalView()) {
+                <p class="text-xs mt-1 text-text-muted">
+                  by {{ proposal()?.author?.displayName }} · {{ formatDate(proposal()?.createdAt || '') }}
+                  · Base version: v{{ proposal()?.baseVersion }}
+                </p>
+              } @else {
+                <p class="text-xs mt-1"
+                   [class.text-text-muted]="document()?.documentType !== 'Notes'"
+                   [class.text-amber-700]="document()?.documentType === 'Notes'">
+                  {{ wordCount() }} words
+                  @if (lastSaved()) {
+                    · Saved {{ lastSaved() | date:'shortTime' }}
+                  }
+                  @if (hasUnsavedChanges()) {
+                    · <span class="text-amber-600">Unsaved changes</span>
+                  }
+                </p>
+              }
             </div>
             <div class="flex items-center gap-3">
-              <button 
-                (click)="saveDraft()" 
-                [disabled]="isSaving() || !hasUnsavedChanges()"
-                class="btn btn-secondary text-sm py-2"
-              >
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
-                </svg>
-                {{ isSaving() ? 'Saving...' : 'Save Draft' }}
-              </button>
-              <button (click)="openProposalModal()" class="btn btn-primary text-sm py-2">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                </svg>
-                Submit for Review
-              </button>
+              @if (isProposalView()) {
+                <button (click)="goBack()" class="btn btn-secondary text-sm py-2">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                  </svg>
+                  Back to Project
+                </button>
+              } @else {
+                <button 
+                  (click)="saveDraft()" 
+                  [disabled]="isSaving() || !hasUnsavedChanges()"
+                  class="btn btn-secondary text-sm py-2"
+                >
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                  </svg>
+                  {{ isSaving() ? 'Saving...' : 'Save Draft' }}
+                </button>
+                <button (click)="openProposalModal()" class="btn btn-primary text-sm py-2">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                  </svg>
+                  Submit for Review
+                </button>
+              }
             </div>
           </div>
 
-          <!-- Formatting Toolbar -->
-          <div class="flex items-center gap-1 px-8 py-2 border-t border-brand-border overflow-x-auto"
-               [class.bg-brand-canvas]="document()?.documentType !== 'Notes'"
-               [class.bg-amber-50]="document()?.documentType === 'Notes'"
-               [class.border-amber-200]="document()?.documentType === 'Notes'">
-            <!-- Text Style -->
-            <div class="flex items-center gap-1 pr-3 border-r border-brand-border">
-              <button 
-                (click)="toggleBold()" 
-                [class.bg-brand-panel]="isActive('bold')"
-                [class.text-text-inverse]="isActive('bold')"
-                class="toolbar-btn"
-                title="Bold (Ctrl+B)"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                  <path d="M6 4h8a4 4 0 014 4 4 4 0 01-4 4H6z M6 12h9a4 4 0 014 4 4 4 0 01-4 4H6z"></path>
-                </svg>
-              </button>
-              <button 
-                (click)="toggleItalic()" 
-                [class.bg-brand-panel]="isActive('italic')"
-                [class.text-text-inverse]="isActive('italic')"
-                class="toolbar-btn"
-                title="Italic (Ctrl+I)"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M19 4h-9 M14 20H5 M15 4L9 20"></path>
-                </svg>
-              </button>
-              <button 
-                (click)="toggleUnderline()" 
-                [class.bg-brand-panel]="isActive('underline')"
-                [class.text-text-inverse]="isActive('underline')"
-                class="toolbar-btn"
-                title="Underline (Ctrl+U)"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M6 3v7a6 6 0 006 6 6 6 0 006-6V3 M4 21h16"></path>
-                </svg>
-              </button>
-              <button 
-                (click)="toggleStrike()" 
-                [class.bg-brand-panel]="isActive('strike')"
-                [class.text-text-inverse]="isActive('strike')"
-                class="toolbar-btn"
-                title="Strikethrough"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M16 4H9a3 3 0 00-3 3v0a3 3 0 003 3h6a3 3 0 013 3v0a3 3 0 01-3 3H7 M4 12h16"></path>
-                </svg>
-              </button>
-              <button 
-                (click)="toggleHighlight()" 
-                [class.bg-brand-panel]="isActive('highlight')"
-                [class.text-text-inverse]="isActive('highlight')"
-                class="toolbar-btn"
-                title="Highlight"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M12 20h9 M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                </svg>
-              </button>
+          @if (isProposalView()) {
+            <!-- Proposal Info Bar with Diff Legend -->
+            <div class="flex items-center justify-between px-8 py-3 border-t border-brand-border bg-gray-50">
+              <!-- Description -->
+              <div class="flex-1">
+                @if (proposal()?.description) {
+                  <p class="text-sm text-text-primary">{{ proposal()?.description }}</p>
+                } @else {
+                  <p class="text-sm text-text-muted italic">No description provided</p>
+                }
+              </div>
+              
+              <!-- Diff Legend -->
+              <div class="flex items-center gap-4 text-sm ml-4">
+                <span class="flex items-center gap-2">
+                  <span class="w-4 h-4 bg-red-100 border border-red-300"></span>
+                  <span class="text-text-muted">Removed</span>
+                </span>
+                <span class="flex items-center gap-2">
+                  <span class="w-4 h-4 bg-green-100 border border-green-300"></span>
+                  <span class="text-text-muted">Added</span>
+                </span>
+              </div>
             </div>
+          } @else {
+            <!-- Formatting Toolbar (only in edit mode) -->
+            <div class="flex items-center gap-1 px-8 py-2 border-t border-brand-border overflow-x-auto"
+                 [class.bg-brand-canvas]="document()?.documentType !== 'Notes'"
+                 [class.bg-amber-50]="document()?.documentType === 'Notes'"
+                 [class.border-amber-200]="document()?.documentType === 'Notes'">
+              <!-- Text Style -->
+              <div class="flex items-center gap-1 pr-3 border-r border-brand-border">
+                <button 
+                  (click)="toggleBold()" 
+                  [class.bg-brand-panel]="isActive('bold')"
+                  [class.text-text-inverse]="isActive('bold')"
+                  class="toolbar-btn"
+                  title="Bold (Ctrl+B)"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M6 4h8a4 4 0 014 4 4 4 0 01-4 4H6z M6 12h9a4 4 0 014 4 4 4 0 01-4 4H6z"></path>
+                  </svg>
+                </button>
+                <button 
+                  (click)="toggleItalic()" 
+                  [class.bg-brand-panel]="isActive('italic')"
+                  [class.text-text-inverse]="isActive('italic')"
+                  class="toolbar-btn"
+                  title="Italic (Ctrl+I)"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M19 4h-9 M14 20H5 M15 4L9 20"></path>
+                  </svg>
+                </button>
+                <button 
+                  (click)="toggleUnderline()" 
+                  [class.bg-brand-panel]="isActive('underline')"
+                  [class.text-text-inverse]="isActive('underline')"
+                  class="toolbar-btn"
+                  title="Underline (Ctrl+U)"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M6 3v7a6 6 0 006 6 6 6 0 006-6V3 M4 21h16"></path>
+                  </svg>
+                </button>
+                <button 
+                  (click)="toggleStrike()" 
+                  [class.bg-brand-panel]="isActive('strike')"
+                  [class.text-text-inverse]="isActive('strike')"
+                  class="toolbar-btn"
+                  title="Strikethrough"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M16 4H9a3 3 0 00-3 3v0a3 3 0 003 3h6a3 3 0 013 3v0a3 3 0 01-3 3H7 M4 12h16"></path>
+                  </svg>
+                </button>
+                <button 
+                  (click)="toggleHighlight()" 
+                  [class.bg-brand-panel]="isActive('highlight')"
+                  [class.text-text-inverse]="isActive('highlight')"
+                  class="toolbar-btn"
+                  title="Highlight"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M12 20h9 M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                  </svg>
+                </button>
+              </div>
 
-            <!-- Headings -->
-            <div class="flex items-center gap-1 px-3 border-r border-brand-border">
-              <button 
-                (click)="setParagraph()" 
-                [class.bg-brand-panel]="isActive('paragraph') && !isActive('heading')"
-                [class.text-text-inverse]="isActive('paragraph') && !isActive('heading')"
-                class="toolbar-btn text-xs font-medium"
-                title="Paragraph"
-              >
-                P
-              </button>
-              <button 
-                (click)="setHeading(1)" 
-                [class.bg-brand-panel]="isActive('heading', { level: 1 })"
-                [class.text-text-inverse]="isActive('heading', { level: 1 })"
-                class="toolbar-btn text-xs font-medium"
-                title="Heading 1"
-              >
-                H1
-              </button>
-              <button 
-                (click)="setHeading(2)" 
-                [class.bg-brand-panel]="isActive('heading', { level: 2 })"
-                [class.text-text-inverse]="isActive('heading', { level: 2 })"
-                class="toolbar-btn text-xs font-medium"
-                title="Heading 2"
-              >
-                H2
-              </button>
-              <button 
-                (click)="setHeading(3)" 
-                [class.bg-brand-panel]="isActive('heading', { level: 3 })"
-                [class.text-text-inverse]="isActive('heading', { level: 3 })"
-                class="toolbar-btn text-xs font-medium"
-                title="Heading 3"
-              >
-                H3
-              </button>
-            </div>
+              <!-- Headings -->
+              <div class="flex items-center gap-1 px-3 border-r border-brand-border">
+                <button 
+                  (click)="setParagraph()" 
+                  [class.bg-brand-panel]="isActive('paragraph') && !isActive('heading')"
+                  [class.text-text-inverse]="isActive('paragraph') && !isActive('heading')"
+                  class="toolbar-btn text-xs font-medium"
+                  title="Paragraph"
+                >
+                  P
+                </button>
+                <button 
+                  (click)="setHeading(1)" 
+                  [class.bg-brand-panel]="isActive('heading', { level: 1 })"
+                  [class.text-text-inverse]="isActive('heading', { level: 1 })"
+                  class="toolbar-btn text-xs font-medium"
+                  title="Heading 1"
+                >
+                  H1
+                </button>
+                <button 
+                  (click)="setHeading(2)" 
+                  [class.bg-brand-panel]="isActive('heading', { level: 2 })"
+                  [class.text-text-inverse]="isActive('heading', { level: 2 })"
+                  class="toolbar-btn text-xs font-medium"
+                  title="Heading 2"
+                >
+                  H2
+                </button>
+                <button 
+                  (click)="setHeading(3)" 
+                  [class.bg-brand-panel]="isActive('heading', { level: 3 })"
+                  [class.text-text-inverse]="isActive('heading', { level: 3 })"
+                  class="toolbar-btn text-xs font-medium"
+                  title="Heading 3"
+                >
+                  H3
+                </button>
+              </div>
 
-            <!-- Lists -->
-            <div class="flex items-center gap-1 px-3 border-r border-brand-border">
-              <button 
-                (click)="toggleBulletList()" 
-                [class.bg-brand-panel]="isActive('bulletList')"
-                [class.text-text-inverse]="isActive('bulletList')"
-                class="toolbar-btn"
-                title="Bullet List"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01"></path>
-                </svg>
-              </button>
-              <button 
-                (click)="toggleOrderedList()" 
-                [class.bg-brand-panel]="isActive('orderedList')"
-                [class.text-text-inverse]="isActive('orderedList')"
-                class="toolbar-btn"
-                title="Numbered List"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M10 6h11 M10 12h11 M10 18h11 M4 6h1v4 M4 10h2 M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path>
-                </svg>
-              </button>
-              <button 
-                (click)="toggleBlockquote()" 
-                [class.bg-brand-panel]="isActive('blockquote')"
-                [class.text-text-inverse]="isActive('blockquote')"
-                class="toolbar-btn"
-                title="Blockquote"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3z"></path>
-                </svg>
-              </button>
-            </div>
+              <!-- Lists -->
+              <div class="flex items-center gap-1 px-3 border-r border-brand-border">
+                <button 
+                  (click)="toggleBulletList()" 
+                  [class.bg-brand-panel]="isActive('bulletList')"
+                  [class.text-text-inverse]="isActive('bulletList')"
+                  class="toolbar-btn"
+                  title="Bullet List"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01"></path>
+                  </svg>
+                </button>
+                <button 
+                  (click)="toggleOrderedList()" 
+                  [class.bg-brand-panel]="isActive('orderedList')"
+                  [class.text-text-inverse]="isActive('orderedList')"
+                  class="toolbar-btn"
+                  title="Numbered List"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M10 6h11 M10 12h11 M10 18h11 M4 6h1v4 M4 10h2 M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path>
+                  </svg>
+                </button>
+                <button 
+                  (click)="toggleBlockquote()" 
+                  [class.bg-brand-panel]="isActive('blockquote')"
+                  [class.text-text-inverse]="isActive('blockquote')"
+                  class="toolbar-btn"
+                  title="Blockquote"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3z"></path>
+                  </svg>
+                </button>
+              </div>
 
-            <!-- Alignment -->
-            <div class="flex items-center gap-1 px-3 border-r border-brand-border">
-              <button 
-                (click)="setTextAlign('left')" 
-                [class.bg-brand-panel]="isActive({ textAlign: 'left' })"
-                [class.text-text-inverse]="isActive({ textAlign: 'left' })"
-                class="toolbar-btn"
-                title="Align Left"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M17 10H3 M21 6H3 M21 14H3 M17 18H3"></path>
-                </svg>
-              </button>
-              <button 
-                (click)="setTextAlign('center')" 
-                [class.bg-brand-panel]="isActive({ textAlign: 'center' })"
-                [class.text-text-inverse]="isActive({ textAlign: 'center' })"
-                class="toolbar-btn"
-                title="Align Center"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M18 10H6 M21 6H3 M21 14H3 M18 18H6"></path>
-                </svg>
-              </button>
-              <button 
-                (click)="setTextAlign('right')" 
-                [class.bg-brand-panel]="isActive({ textAlign: 'right' })"
-                [class.text-text-inverse]="isActive({ textAlign: 'right' })"
-                class="toolbar-btn"
-                title="Align Right"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M21 10H7 M21 6H3 M21 14H3 M21 18H7"></path>
-                </svg>
-              </button>
-            </div>
+              <!-- Alignment -->
+              <div class="flex items-center gap-1 px-3 border-r border-brand-border">
+                <button 
+                  (click)="setTextAlign('left')" 
+                  [class.bg-brand-panel]="isActive({ textAlign: 'left' })"
+                  [class.text-text-inverse]="isActive({ textAlign: 'left' })"
+                  class="toolbar-btn"
+                  title="Align Left"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 10H3 M21 6H3 M21 14H3 M17 18H3"></path>
+                  </svg>
+                </button>
+                <button 
+                  (click)="setTextAlign('center')" 
+                  [class.bg-brand-panel]="isActive({ textAlign: 'center' })"
+                  [class.text-text-inverse]="isActive({ textAlign: 'center' })"
+                  class="toolbar-btn"
+                  title="Align Center"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M18 10H6 M21 6H3 M21 14H3 M18 18H6"></path>
+                  </svg>
+                </button>
+                <button 
+                  (click)="setTextAlign('right')" 
+                  [class.bg-brand-panel]="isActive({ textAlign: 'right' })"
+                  [class.text-text-inverse]="isActive({ textAlign: 'right' })"
+                  class="toolbar-btn"
+                  title="Align Right"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M21 10H7 M21 6H3 M21 14H3 M21 18H7"></path>
+                  </svg>
+                </button>
+              </div>
 
-            <!-- Undo/Redo -->
-            <div class="flex items-center gap-1 pl-3">
-              <button (click)="undo()" class="toolbar-btn" title="Undo (Ctrl+Z)">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M3 10h10a5 5 0 015 5v2M3 10l4-4m-4 4l4 4"></path>
-                </svg>
-              </button>
-              <button (click)="redo()" class="toolbar-btn" title="Redo (Ctrl+Y)">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M21 10H11a5 5 0 00-5 5v2M21 10l-4-4m4 4l-4 4"></path>
-                </svg>
-              </button>
+              <!-- Undo/Redo -->
+              <div class="flex items-center gap-1 pl-3">
+                <button (click)="undo()" class="toolbar-btn" title="Undo (Ctrl+Z)">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M3 10h10a5 5 0 015 5v2M3 10l4-4m-4 4l4 4"></path>
+                  </svg>
+                </button>
+                <button (click)="redo()" class="toolbar-btn" title="Redo (Ctrl+Y)">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M21 10H11a5 5 0 00-5 5v2M21 10l-4-4m4 4l-4 4"></path>
+                  </svg>
+                </button>
+              </div>
             </div>
-          </div>
+          }
         </header>
 
         <!-- Editor Content -->
@@ -281,66 +328,174 @@
       <!-- Right Panel (Dark Background) -->
       <aside class="sidebar-right w-80 flex-shrink-0 overflow-y-auto border-l border-brand-border">
         <div class="p-6">
-          <h2 class="subheading text-text-inverse/60 mb-4">Document Info</h2>
-          
-          <div class="space-y-3 text-sm">
-            <div class="flex justify-between">
-              <span class="text-text-inverse/60">Version</span>
-              <span class="text-text-inverse">{{ document()?.version }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-text-inverse/60">Word Count</span>
-              <span class="text-text-inverse">{{ wordCount() }}</span>
-            </div>
-            @if (draft()) {
+          @if (isProposalView()) {
+            <!-- Proposal View Mode Sidebar -->
+            <h2 class="subheading text-text-inverse/60 mb-4">Proposal Details</h2>
+            
+            <div class="space-y-3 text-sm">
               <div class="flex justify-between">
-                <span class="text-text-inverse/60">Draft Base</span>
-                <span class="text-text-inverse">v{{ draft()?.baseVersion }}</span>
+                <span class="text-text-inverse/60">Status</span>
+                <span class="text-text-inverse px-2 py-0.5 rounded text-xs"
+                      [class.bg-amber-500]="proposal()?.status === 'Pending'"
+                      [class.bg-green-500]="proposal()?.status === 'Accepted'"
+                      [class.bg-red-500]="proposal()?.status === 'Rejected'">
+                  {{ proposal()?.status }}
+                </span>
               </div>
-            }
-          </div>
+              <div class="flex justify-between">
+                <span class="text-text-inverse/60">Base Version</span>
+                <span class="text-text-inverse">v{{ proposal()?.baseVersion }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-text-inverse/60">Author</span>
+                <span class="text-text-inverse">{{ proposal()?.author?.displayName }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-text-inverse/60">Created</span>
+                <span class="text-text-inverse">{{ formatDate(proposal()?.createdAt || '') }}</span>
+              </div>
+            </div>
 
-          <!-- Divider -->
-          <div class="my-6 h-px bg-text-inverse/10"></div>
+            <!-- Divider -->
+            <div class="my-6 h-px bg-text-inverse/10"></div>
 
-          <h2 class="subheading text-text-inverse/60 mb-4">Change Requests</h2>
-          
-          <!-- Empty State -->
-          <div class="text-center py-8">
-            <svg class="w-10 h-10 mx-auto text-text-inverse/30 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-            </svg>
-            <p class="text-text-inverse/60 text-sm">No pending change requests</p>
-          </div>
+            <!-- Voting Section -->
+            <h2 class="subheading text-text-inverse/60 mb-4">Voting</h2>
+            
+            <div class="space-y-4">
+              <!-- Vote counts -->
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  <span class="text-green-400 text-sm font-medium">{{ proposal()?.approveCount }} approve</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-red-400 text-sm font-medium">{{ proposal()?.rejectCount }} reject</span>
+                  <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </div>
+              </div>
 
-          <!-- Divider -->
-          <div class="my-6 h-px bg-text-inverse/10"></div>
+              <!-- Progress bar -->
+              <div class="h-2 bg-text-inverse/10 rounded-full overflow-hidden">
+                @if ((proposal()?.approveCount || 0) + (proposal()?.rejectCount || 0) > 0) {
+                  <div class="h-full flex">
+                    <div class="bg-green-500 transition-all" 
+                         [style.width.%]="((proposal()?.approveCount || 0) / ((proposal()?.approveCount || 0) + (proposal()?.rejectCount || 0))) * 100"></div>
+                    <div class="bg-red-500 transition-all" 
+                         [style.width.%]="((proposal()?.rejectCount || 0) / ((proposal()?.approveCount || 0) + (proposal()?.rejectCount || 0))) * 100"></div>
+                  </div>
+                }
+              </div>
+              <p class="text-xs text-text-inverse/60 text-center">
+                {{ (proposal()?.approveCount || 0) + (proposal()?.rejectCount || 0) }} total votes
+              </p>
 
-          <!-- Keyboard Shortcuts -->
-          <h2 class="subheading text-text-inverse/60 mb-4">Shortcuts</h2>
-          
-          <div class="space-y-2 text-xs">
-            <div class="flex justify-between text-text-inverse/60">
-              <span>Bold</span>
-              <kbd class="bg-text-inverse/10 px-1.5 py-0.5 rounded">Ctrl+B</kbd>
+              <!-- Voting buttons -->
+              @if (proposal()?.status === 'Pending') {
+                <div class="pt-4 space-y-3">
+                  @if (isOwnProposal()) {
+                    <div class="py-3 px-4 bg-text-inverse/5 text-text-inverse/60 text-sm text-center rounded">
+                      <span class="flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        Your proposal
+                      </span>
+                    </div>
+                  } @else {
+                    <button 
+                      (click)="voteOnProposal('Approve')"
+                      [disabled]="isVoting()"
+                      class="w-full py-2.5 px-4 bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors disabled:opacity-50 rounded">
+                      <span class="flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Vote to Approve
+                      </span>
+                    </button>
+                    <button 
+                      (click)="voteOnProposal('Reject')"
+                      [disabled]="isVoting()"
+                      class="w-full py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors disabled:opacity-50 rounded">
+                      <span class="flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        Vote to Reject
+                      </span>
+                    </button>
+                  }
+                </div>
+              }
             </div>
-            <div class="flex justify-between text-text-inverse/60">
-              <span>Italic</span>
-              <kbd class="bg-text-inverse/10 px-1.5 py-0.5 rounded">Ctrl+I</kbd>
+          } @else {
+            <!-- Normal Edit Mode Sidebar -->
+            <h2 class="subheading text-text-inverse/60 mb-4">Document Info</h2>
+            
+            <div class="space-y-3 text-sm">
+              <div class="flex justify-between">
+                <span class="text-text-inverse/60">Version</span>
+                <span class="text-text-inverse">{{ document()?.version }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-text-inverse/60">Word Count</span>
+                <span class="text-text-inverse">{{ wordCount() }}</span>
+              </div>
+              @if (draft()) {
+                <div class="flex justify-between">
+                  <span class="text-text-inverse/60">Draft Base</span>
+                  <span class="text-text-inverse">v{{ draft()?.baseVersion }}</span>
+                </div>
+              }
             </div>
-            <div class="flex justify-between text-text-inverse/60">
-              <span>Underline</span>
-              <kbd class="bg-text-inverse/10 px-1.5 py-0.5 rounded">Ctrl+U</kbd>
+
+            <!-- Divider -->
+            <div class="my-6 h-px bg-text-inverse/10"></div>
+
+            <h2 class="subheading text-text-inverse/60 mb-4">Change Requests</h2>
+            
+            <!-- Empty State -->
+            <div class="text-center py-8">
+              <svg class="w-10 h-10 mx-auto text-text-inverse/30 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+              </svg>
+              <p class="text-text-inverse/60 text-sm">No pending change requests</p>
             </div>
-            <div class="flex justify-between text-text-inverse/60">
-              <span>Undo</span>
-              <kbd class="bg-text-inverse/10 px-1.5 py-0.5 rounded">Ctrl+Z</kbd>
+
+            <!-- Divider -->
+            <div class="my-6 h-px bg-text-inverse/10"></div>
+
+            <!-- Keyboard Shortcuts -->
+            <h2 class="subheading text-text-inverse/60 mb-4">Shortcuts</h2>
+            
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between text-text-inverse/60">
+                <span>Bold</span>
+                <kbd class="bg-text-inverse/10 px-1.5 py-0.5 rounded">Ctrl+B</kbd>
+              </div>
+              <div class="flex justify-between text-text-inverse/60">
+                <span>Italic</span>
+                <kbd class="bg-text-inverse/10 px-1.5 py-0.5 rounded">Ctrl+I</kbd>
+              </div>
+              <div class="flex justify-between text-text-inverse/60">
+                <span>Underline</span>
+                <kbd class="bg-text-inverse/10 px-1.5 py-0.5 rounded">Ctrl+U</kbd>
+              </div>
+              <div class="flex justify-between text-text-inverse/60">
+                <span>Undo</span>
+                <kbd class="bg-text-inverse/10 px-1.5 py-0.5 rounded">Ctrl+Z</kbd>
+              </div>
+              <div class="flex justify-between text-text-inverse/60">
+                <span>Redo</span>
+                <kbd class="bg-text-inverse/10 px-1.5 py-0.5 rounded">Ctrl+Y</kbd>
+              </div>
             </div>
-            <div class="flex justify-between text-text-inverse/60">
-              <span>Redo</span>
-              <kbd class="bg-text-inverse/10 px-1.5 py-0.5 rounded">Ctrl+Y</kbd>
-            </div>
-          </div>
+          }
         </div>
       </aside>
     } @else {

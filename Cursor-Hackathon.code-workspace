@@ -11,7 +11,15 @@
       "**/obj": true
     },
     "terminal.integrated.profiles.windows": {
-      "Docker Compose up Rebuild": {
+      "Docker Stack (no rebuild)": {
+        "path": "pwsh.exe",
+        "args": [
+          "-NoExit",
+          "-Command",
+          "docker compose -f docker-compose.yml up -d"
+        ]
+      },
+      "Docker Stack (rebuild)": {
         "path": "pwsh.exe",
         "args": [
           "-NoExit",
@@ -19,12 +27,12 @@
           "docker compose -f docker-compose.yml up -d --build"
         ]
       },
-      "Docker Compose up": {
+      "Database Only (for hot reload)": {
         "path": "pwsh.exe",
         "args": [
           "-NoExit",
           "-Command",
-          "docker compose -f docker-compose.yml up -d"
+          "docker compose -f docker-compose.yml up -d db"
         ]
       }
     }
