@@ -1,0 +1,13 @@
+/* Configure Tab Styles */
+.configure-tab-container {
+  padding: 2rem;
+  background-color: #F4F4F4; /* brand-canvas */
+  min-height: calc(100vh - 200px);
+}
+
+.card {
+  background-color: #FFFFFF;
+  border: 1px solid #D1D1D1;
+  border-radius: 0;
+  padding: 2rem;
+}

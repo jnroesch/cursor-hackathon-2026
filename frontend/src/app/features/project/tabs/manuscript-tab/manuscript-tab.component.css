@@ -1,0 +1,16 @@
+/* Manuscript Tab Styles */
+.manuscript-editor-area {
+  background-color: #F4F4F4; /* brand-canvas */
+  min-height: calc(100vh - 200px);
+  margin-right: 300px; /* Space for fixed sidebar */
+}
+
+.manuscript-sidebar {
+  width: 300px;
+  flex-shrink: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  z-index: 10;
+}

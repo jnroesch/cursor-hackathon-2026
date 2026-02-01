@@ -1,0 +1,181 @@
+<!-- Configure Tab - Project Settings, Team Management, Actions -->
+<div class="configure-tab-container">
+  <div class="max-w-4xl mx-auto space-y-8">
+    
+    <!-- Project Settings Section -->
+    <section class="card">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="font-serif text-2xl text-text-primary">Project Settings</h2>
+        @if (!isEditingProject() && isOwner()) {
+          <button (click)="startEditing()" class="btn btn-secondary text-sm">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            Edit
+          </button>
+        }
+      </div>
+      
+      @if (isEditingProject()) {
+        <!-- Edit Mode -->
+        <div class="space-y-4">
+          <div>
+            <label for="projectTitle" class="label">Project Title</label>
+            <input 
+              type="text" 
+              id="projectTitle"
+              [(ngModel)]="projectTitle"
+              class="form-input"
+              placeholder="Enter project title"
+            />
+          </div>
+          
+          <div>
+            <label for="projectDescription" class="label">Description</label>
+            <textarea 
+              id="projectDescription"
+              [(ngModel)]="projectDescription"
+              class="form-input"
+              rows="3"
+              placeholder="Describe your project"
+            ></textarea>
+          </div>
+          
+          <div class="flex gap-3 pt-4">
+            <button (click)="saveProjectChanges()" class="btn btn-primary">
+              Save Changes
+            </button>
+            <button (click)="cancelEditing()" class="btn btn-secondary">
+              Cancel
+            </button>
+          </div>
+        </div>
+      } @else {
+        <!-- View Mode -->
+        <div class="space-y-4">
+          <div>
+            <p class="label">Project Title</p>
+            <p class="text-lg text-text-primary">{{ project?.title || 'Untitled Project' }}</p>
+          </div>
+          
+          @if (project?.description) {
+            <div>
+              <p class="label">Description</p>
+              <p class="text-text-primary">{{ project?.description }}</p>
+            </div>
+          }
+          
+          <div>
+            <p class="label">Created</p>
+            <p class="text-sm text-text-muted">{{ project?.createdAt | date:'medium' }}</p>
+          </div>
+        </div>
+      }
+    </section>
+
+    <!-- Team Management Section -->
+    <section class="card">
+      <h2 class="font-serif text-2xl text-text-primary mb-6">Authors</h2>
+      
+      <!-- Invite Form -->
+      <div class="mb-6 pb-6 border-b border-brand-border">
+        <p class="label mb-3">Invite New Author</p>
+        <div class="flex gap-3">
+          <input 
+            type="email" 
+            [(ngModel)]="inviteEmail"
+            class="form-input flex-1"
+            placeholder="Enter email address"
+            (keyup.enter)="onInviteMember()"
+          />
+          <button 
+            (click)="onInviteMember()" 
+            [disabled]="!inviteEmail.trim() || isInviting()"
+            class="btn btn-primary"
+          >
+            {{ isInviting() ? 'Inviting...' : 'Invite' }}
+          </button>
+        </div>
+        @if (inviteError()) {
+          <p class="text-red-600 text-sm mt-2">{{ inviteError() }}</p>
+        }
+      </div>
+      
+      <!-- Members List -->
+      <div class="space-y-3">
+        <p class="label mb-4">Current Authors ({{ members.length }})</p>
+        @for (member of members; track member.userId) {
+          <div class="flex items-center justify-between py-3 border-b border-brand-border last:border-b-0">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-brand-panel flex items-center justify-center">
+                <span class="text-text-inverse font-medium text-sm">
+                  {{ member.user?.displayName?.charAt(0).toUpperCase() || '?' }}
+                </span>
+              </div>
+              <div>
+                <p class="font-medium text-text-primary">{{ member.user?.displayName || 'Unknown' }}</p>
+                <p class="text-xs text-text-muted">{{ member.role }}</p>
+              </div>
+            </div>
+            @if (member.role !== 'Owner' && isOwner()) {
+              <button 
+                (click)="onRemoveMember(member.userId)" 
+                class="text-sm text-text-muted hover:text-red-600 underline underline-offset-4">
+                Remove
+              </button>
+            } @else if (member.role === 'Owner') {
+              <span class="text-xs text-text-muted uppercase tracking-wider">Owner</span>
+            }
+          </div>
+        } @empty {
+          <p class="text-text-muted text-center py-4">No authors yet</p>
+        }
+      </div>
+    </section>
+
+    <!-- Project Actions Section -->
+    <section class="card border-red-200 bg-red-50">
+      <h2 class="font-serif text-2xl text-text-primary mb-6">Danger Zone</h2>
+      
+      <div class="space-y-4">
+        <!-- Leave Project -->
+        <div class="flex items-start justify-between p-4 border border-red-200 bg-white">
+          <div class="flex-1">
+            <h3 class="font-medium text-text-primary mb-1">Leave Project</h3>
+            <p class="text-sm text-text-muted">
+              You will lose access to this project and all your contributions. This action cannot be undone.
+            </p>
+          </div>
+          <button 
+            (click)="onLeaveProject()"
+            [disabled]="isOwner()"
+            class="btn btn-secondary ml-4 hover:bg-red-600 hover:text-white hover:border-red-600 disabled:opacity-50">
+            Leave Project
+          </button>
+        </div>
+        
+        @if (isOwner()) {
+          <p class="text-xs text-text-muted italic px-4">
+            * As the project owner, you cannot leave the project. Transfer ownership or delete the project instead.
+          </p>
+        }
+        
+        <!-- Vote to Delete -->
+        <div class="flex items-start justify-between p-4 border border-red-300 bg-white">
+          <div class="flex-1">
+            <h3 class="font-medium text-red-600 mb-1">Delete Project</h3>
+            <p class="text-sm text-text-muted">
+              Vote to permanently delete this project. Requires majority approval from all authors. All data will be lost.
+            </p>
+          </div>
+          <button 
+            (click)="onVoteToDelete()"
+            class="btn btn-secondary ml-4 border-red-600 text-red-600 hover:bg-red-600 hover:text-white">
+            Vote to Delete
+          </button>
+        </div>
+      </div>
+    </section>
+    
+  </div>
+</div>

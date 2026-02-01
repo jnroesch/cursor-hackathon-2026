@@ -1,1 +1,30 @@
 /* Project component specific styles */
+
+/* Tab Navigation - Scharf Design System */
+.tab-navigation {
+  display: flex;
+  gap: 2rem;
+  padding-bottom: 0;
+}
+
+.tab-button {
+  padding: 1rem 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #6b7280;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.tab-button:hover {
+  color: #111827;
+}
+
+.tab-button-active {
+  color: #111827;
+  border-bottom-color: #111827;
+}

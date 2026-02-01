@@ -124,6 +124,36 @@ public class ProjectsController : ControllerBase
         }
     }
 
+    [HttpPost("{id}/leave")]
+    public async Task<ActionResult> LeaveProject(Guid id)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            await _projectService.LeaveProjectAsync(id, userId);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("{id}/delete-vote")]
+    public async Task<ActionResult> VoteToDeleteProject(Guid id)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var result = await _projectService.VoteToDeleteProjectAsync(id, userId);
+            return Ok(new { message = result });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
     private Guid GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

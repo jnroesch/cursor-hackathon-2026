@@ -1,20 +1,23 @@
-<!-- Scharf Design System - Project View -->
+<!-- Scharf Design System - Project View with Tabs -->
 <div class="min-h-screen flex">
   <!-- Left Navigation Rail -->
   <nav class="nav-rail flex flex-col items-center py-6 fixed h-full">
     <div class="mb-8">
       <a routerLink="/dashboard" class="font-serif text-2xl text-text-primary">I</a>
     </div>
-    
+
     <div class="flex-1 flex flex-col items-center space-y-2">
       <a routerLink="/dashboard" class="nav-rail-item" title="Dashboard">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+          </path>
         </svg>
       </a>
       <a routerLink="/profile" class="nav-rail-item" title="Profile">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
         </svg>
       </a>
     </div>
@@ -23,368 +26,97 @@
   <!-- Main Content -->
   <main class="flex-1 ml-rail">
     @if (isLoading()) {
-      <div class="flex items-center justify-center h-screen">
-        <div class="text-text-muted">Loading project...</div>
-      </div>
+    <div class="flex items-center justify-center h-screen">
+      <div class="text-text-muted">Loading project...</div>
+    </div>
     } @else if (project()) {
-      <!-- Header -->
-      <header class="border-b border-brand-border bg-brand-white px-8 py-6">
-        <div class="flex justify-between items-center">
-          <div>
-            <a routerLink="/dashboard" class="text-text-muted text-sm hover:text-text-primary">← Back to Dashboard</a>
-            <h1 class="font-serif text-3xl mt-2 text-text-primary">{{ project()?.title }}</h1>
-            @if (project()?.description) {
-              <p class="text-text-muted mt-1">{{ project()?.description }}</p>
-            }
-          </div>
-          <div class="flex items-center space-x-4">
-            <button (click)="openTeamModal()" class="btn btn-secondary">
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-              </svg>
-              Authors
-            </button>
-          </div>
+    <!-- Header -->
+    <header class="border-b border-brand-border bg-brand-white px-8 py-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <a routerLink="/dashboard" class="text-text-muted text-sm hover:text-text-primary">← Back to Dashboard</a>
+          <h1 class="font-serif text-3xl mt-2 text-text-primary">{{ project()?.title }}</h1>
+          @if (project()?.description) {
+          <p class="text-text-muted mt-1">{{ project()?.description }}</p>
+          }
         </div>
-      </header>
-
-      <!-- Content Area -->
-      <div class="p-8">
-        <!-- Two Column Layout -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <!-- Main Content (Left 2 columns) -->
-          <div class="lg:col-span-2 space-y-8">
-            <!-- Documents List -->
-            <section>
-              <div class="flex items-center justify-between mb-4">
-                <h2 class="subheading">Documents</h2>
-              </div>
-              <div class="space-y-3">
-                @for (doc of documents(); track doc.id) {
-                  <a [routerLink]="['/editor', doc.id]" 
-                     class="card flex items-center justify-between group cursor-pointer hover:border-text-primary transition-colors"
-                     [class.bg-amber-50]="doc.documentType === 'Notes'"
-                     [class.border-amber-200]="doc.documentType === 'Notes'">
-                    <div class="flex items-center">
-                      <div class="w-10 h-10 flex items-center justify-center mr-4"
-                           [class.bg-brand-panel]="doc.documentType === 'Manuscript'"
-                           [class.bg-amber-400]="doc.documentType === 'Notes'">
-                        @if (doc.documentType === 'Manuscript') {
-                          <svg class="w-5 h-5 text-text-inverse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                          </svg>
-                        } @else {
-                          <svg class="w-5 h-5 text-amber-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                          </svg>
-                        }
-                      </div>
-                      <div>
-                        <div class="flex items-center gap-2">
-                          <h3 class="font-medium text-text-primary group-hover:underline">{{ doc.title }}</h3>
-                          <span class="text-xs px-1.5 py-0.5 rounded"
-                                [class.bg-gray-100]="doc.documentType === 'Manuscript'"
-                                [class.text-gray-600]="doc.documentType === 'Manuscript'"
-                                [class.bg-amber-200]="doc.documentType === 'Notes'"
-                                [class.text-amber-800]="doc.documentType === 'Notes'">
-                            {{ doc.documentType }}
-                          </span>
-                        </div>
-                        <p class="text-xs text-text-muted">v{{ doc.version }} · {{ formatWordCount(doc.wordCount) }} words</p>
-                      </div>
-                    </div>
-                    <div class="text-text-muted">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"></path>
-                      </svg>
-                    </div>
-                  </a>
-                }
-              </div>
-            </section>
-
-              <!-- Open Submissions Section -->
-              <section>
-                <div class="flex items-center justify-between mb-4">
-                  <h2 class="subheading">Open Submissions</h2>
-                  @if (pendingProposals().length > 0) {
-                    <span class="inline-flex items-center px-2 py-0.5 bg-amber-100 text-amber-800 text-xs font-medium">
-                      {{ pendingProposals().length }} pending
-                    </span>
-                  }
-                </div>
-
-                @if (pendingProposals().length === 0) {
-                  <div class="border border-dashed border-brand-border p-6 text-center">
-                    <svg class="w-10 h-10 mx-auto text-text-muted mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                    </svg>
-                    <p class="text-text-muted text-sm">No pending submissions</p>
-                    <p class="text-text-muted text-xs mt-1">Proposals will appear here when team members submit changes for review.</p>
-                  </div>
-                } @else {
-                  <div class="space-y-4">
-                    @for (proposal of pendingProposals(); track proposal.id) {
-                      <div class="border border-brand-border bg-brand-white p-5">
-                        <!-- Header row: Author info + timestamp + View Changes -->
-                        <div class="flex items-center justify-between mb-3">
-                          <div class="flex items-center gap-2">
-                            <span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5">Proposal</span>
-                            <span class="text-sm text-text-muted">by {{ proposal.author.displayName }} · {{ formatDate(proposal.createdAt) }}</span>
-                          </div>
-                          <button 
-                            (click)="viewProposalDetails(proposal)"
-                            class="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                            </svg>
-                            View Changes
-                          </button>
-                        </div>
-
-                        <!-- Description -->
-                        @if (proposal.description) {
-                          <h3 class="font-serif text-lg text-text-primary mb-2">{{ proposal.description }}</h3>
-                        } @else {
-                          <h3 class="font-serif text-lg text-text-muted italic mb-2">No description provided</h3>
-                        }
-
-                        <!-- Voting progress -->
-                        <div class="mt-4">
-                          <div class="flex items-center justify-between mb-2">
-                            <div class="flex items-center gap-1">
-                              <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-                              </svg>
-                              <span class="text-sm font-medium text-green-600">{{ proposal.approveCount }} approve</span>
-                            </div>
-                            <div class="flex items-center gap-1">
-                              <span class="text-sm font-medium text-red-600">{{ proposal.rejectCount }} reject</span>
-                              <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                              </svg>
-                            </div>
-                          </div>
-
-                          <!-- Progress bar -->
-                          <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-                            @if (proposal.approveCount + proposal.rejectCount > 0) {
-                              <div class="h-full flex">
-                                <div class="bg-green-500 transition-all" [style.width.%]="getApprovePercentage(proposal)"></div>
-                                <div class="bg-red-500 transition-all" [style.width.%]="getRejectPercentage(proposal)"></div>
-                              </div>
-                            }
-                          </div>
-                          <p class="text-xs text-text-muted mt-1">{{ proposal.approveCount + proposal.rejectCount }} total votes</p>
-                        </div>
-
-                        <!-- Action buttons -->
-                        <div class="flex items-center gap-3 mt-4 pt-4 border-t border-brand-border">
-                          @if (isOwnProposal(proposal)) {
-                            <!-- Own proposal - cannot vote -->
-                            <div class="flex-1 py-2.5 px-4 bg-gray-100 text-gray-500 text-sm text-center">
-                              <span class="flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                </svg>
-                                Your proposal — awaiting votes from other members
-                              </span>
-                            </div>
-                          } @else {
-                            <!-- Other's proposal - can vote -->
-                            <button 
-                              (click)="voteOnProposal(proposal.id, 'Approve')"
-                              [disabled]="isVoting()"
-                              class="flex-1 py-2.5 px-4 bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors disabled:opacity-50">
-                              <span class="flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                Vote to Approve
-                              </span>
-                            </button>
-                            <button 
-                              (click)="voteOnProposal(proposal.id, 'Reject')"
-                              [disabled]="isVoting()"
-                              class="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors disabled:opacity-50">
-                              <span class="flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                                Vote to Reject
-                              </span>
-                            </button>
-                          }
-                        </div>
-                      </div>
-                    }
-                  </div>
-                }
-              </section>
-            </div>
-
-            <!-- Sidebar (Right column) -->
-            <div class="space-y-8">
-              <!-- Recent Activity -->
-              <section>
-                <h2 class="subheading mb-4">Recent Activity</h2>
-                @if (recentActivity().length === 0) {
-                  <div class="border border-dashed border-brand-border p-4 text-center">
-                    <p class="text-text-muted text-sm">No recent activity</p>
-                  </div>
-                } @else {
-                  <div class="space-y-1">
-                    @for (activity of recentActivity(); track activity.id) {
-                      <div class="flex items-start gap-3 py-3 border-b border-brand-border last:border-b-0">
-                        <!-- Activity Icon -->
-                        <div class="w-8 h-8 flex items-center justify-center flex-shrink-0" 
-                             [class.bg-blue-50]="activity.icon === 'document'"
-                             [class.bg-amber-50]="activity.icon === 'proposal'"
-                             [class.bg-green-50]="activity.icon === 'check'"
-                             [class.bg-red-50]="activity.icon === 'x'"
-                             [class.bg-purple-50]="activity.icon === 'user'">
-                          @switch (activity.icon) {
-                            @case ('document') {
-                              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                              </svg>
-                            }
-                            @case ('proposal') {
-                              <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                              </svg>
-                            }
-                            @case ('check') {
-                              <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                              </svg>
-                            }
-                            @case ('x') {
-                              <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                              </svg>
-                            }
-                            @case ('user') {
-                              <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                              </svg>
-                            }
-                          }
-                        </div>
-                        <div class="flex-1 min-w-0">
-                          <p class="text-sm text-text-primary truncate">{{ activity.title }}</p>
-                          <p class="text-xs text-text-muted truncate">{{ activity.description }}</p>
-                          <p class="text-xs text-text-muted mt-0.5">{{ formatDate(activity.timestamp) }}</p>
-                        </div>
-                      </div>
-                    }
-                  </div>
-                }
-              </section>
-
-              <!-- Project Stats -->
-              <section>
-                <h2 class="subheading mb-4">Project Stats</h2>
-                <div class="border border-brand-border divide-y divide-brand-border">
-                  <div class="p-3 flex justify-between items-center">
-                    <span class="text-sm text-text-muted">Documents</span>
-                    <span class="text-sm font-medium text-text-primary">{{ documents().length }}</span>
-                  </div>
-                  <div class="p-3 flex justify-between items-center">
-                    <span class="text-sm text-text-muted">Total Words</span>
-                    <span class="text-sm font-medium text-text-primary">{{ formatWordCount(getTotalWordCount()) }}</span>
-                  </div>
-                  <div class="p-3 flex justify-between items-center">
-                    <span class="text-sm text-text-muted">Open Submissions</span>
-                    <span class="text-sm font-medium text-text-primary">{{ pendingProposals().length }}</span>
-                  </div>
-                  <div class="p-3 flex justify-between items-center">
-                    <span class="text-sm text-text-muted">Authors</span>
-                    <span class="text-sm font-medium text-text-primary">{{ members().length || '-' }}</span>
-                  </div>
-                </div>
-              </section>
-            </div>
-          </div>
       </div>
+    </header>
+
+    <!-- Tab Navigation -->
+    <div class="tab-navigation border-b border-brand-border bg-brand-white px-8">
+      <button 
+        (click)="switchTab('manuscript')" 
+        [class.tab-button-active]="activeTab() === 'manuscript'"
+        class="tab-button">
+        Manuscripts
+      </button>
+      <button 
+        (click)="switchTab('notes')" 
+        [class.tab-button-active]="activeTab() === 'notes'"
+        class="tab-button">
+        Notes
+      </button>
+      <button 
+        (click)="switchTab('review')" 
+        [class.tab-button-active]="activeTab() === 'review'"
+        class="tab-button">
+        Review
+      </button>
+      <button 
+        (click)="switchTab('configure')" 
+        [class.tab-button-active]="activeTab() === 'configure'"
+        class="tab-button">
+        Configure
+      </button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="h-[calc(100vh-180px)]">
+      @switch (activeTab()) {
+        @case ('manuscript') {
+          <app-manuscript-tab 
+            [projectId]="projectId" 
+            [documents]="documents()">
+          </app-manuscript-tab>
+        }
+        @case ('notes') {
+          <app-notes-tab 
+            [projectId]="projectId" 
+            [documents]="documents()">
+          </app-notes-tab>
+        }
+        @case ('review') {
+          <app-review-tab 
+            [pendingProposals]="pendingProposals()" 
+            [recentActivity]="recentActivity()"
+            [currentUserId]="getCurrentUserId()"
+            [isVoting]="isVoting()"
+            (voteOnProposal)="voteOnProposal($event.proposalId, $event.voteType)"
+            (viewProposalDetails)="viewProposalDetails($event)">
+          </app-review-tab>
+        }
+        @case ('configure') {
+          <app-configure-tab 
+            [project]="project()" 
+            [members]="members()"
+            [currentUserId]="getCurrentUserId()"
+            (updateProject)="handleUpdateProject($event)"
+            (inviteMember)="inviteMember()"
+            (removeMember)="removeMember($event)"
+            (leaveProject)="handleLeaveProject()"
+            (voteToDelete)="handleVoteToDelete()">
+          </app-configure-tab>
+        }
+      }
+    </div>
     } @else {
-      <div class="flex items-center justify-center h-screen">
-        <div class="text-center">
-          <h2 class="font-serif text-xl text-text-primary mb-2">Project not found</h2>
-          <a routerLink="/dashboard" class="text-text-muted hover:text-text-primary underline">Return to dashboard</a>
-        </div>
+    <div class="flex items-center justify-center h-screen">
+      <div class="text-center">
+        <h2 class="font-serif text-xl text-text-primary mb-2">Project not found</h2>
+        <a routerLink="/dashboard" class="text-text-muted hover:text-text-primary underline">Return to dashboard</a>
       </div>
+    </div>
     }
   </main>
 </div>
-
-<!-- Team Modal -->
-@if (showTeamModal()) {
-  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" (click)="closeTeamModal()">
-    <div class="bg-brand-white border border-brand-border w-full max-w-lg mx-4 shadow-lg" (click)="$event.stopPropagation()">
-      <div class="flex items-center justify-between px-6 py-5 border-b border-brand-border">
-        <h2 class="font-serif text-xl text-text-primary">Authors</h2>
-        <button (click)="closeTeamModal()" class="text-text-muted hover:text-text-primary">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-      
-      <div class="p-6">
-        <!-- Invite Form -->
-        <div class="mb-6">
-          <div class="flex gap-3">
-            <input 
-              type="email" 
-              [(ngModel)]="inviteEmail"
-              class="form-input flex-1"
-              placeholder="Enter email to invite"
-              (keyup.enter)="inviteMember()"
-            />
-            <button 
-              (click)="inviteMember()" 
-              [disabled]="!inviteEmail.trim() || isInviting()"
-              class="btn btn-primary"
-            >
-              {{ isInviting() ? 'Inviting...' : 'Invite' }}
-            </button>
-          </div>
-          @if (inviteError()) {
-            <p class="text-red-600 text-sm mt-2">{{ inviteError() }}</p>
-          }
-        </div>
-        
-        <!-- Members List -->
-        <div class="space-y-3">
-          @for (member of members(); track member.userId) {
-            <div class="flex items-center justify-between py-3 border-b border-brand-border last:border-b-0">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-brand-panel flex items-center justify-center">
-                  <span class="text-text-inverse font-medium">{{ member.user?.displayName?.charAt(0) || '?' }}</span>
-                </div>
-                <div>
-                  <p class="font-medium text-text-primary">{{ member.user?.displayName || 'Unknown' }}</p>
-                  <p class="text-xs text-text-muted">{{ member.role }}</p>
-                </div>
-              </div>
-              @if (member.role !== 'Owner') {
-                <button (click)="removeMember(member.userId)" class="text-text-muted hover:text-red-600 text-sm">
-                  Remove
-                </button>
-              }
-            </div>
-          } @empty {
-            <p class="text-text-muted text-center py-4">No authors yet</p>
-          }
-        </div>
-      </div>
-      
-      <div class="flex justify-end px-6 py-4 border-t border-brand-border bg-brand-canvas">
-        <button (click)="closeTeamModal()" class="btn btn-secondary">Close</button>
-      </div>
-    </div>
-  </div>
-}
-

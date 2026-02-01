@@ -1,0 +1,26 @@
+<!-- Headline Navigation Sidebar - Scharf Design System -->
+<div class="headline-nav-sidebar">
+  <div class="headline-nav-header">
+    <h3 class="headline-nav-title">IN THIS DOCUMENT</h3>
+  </div>
+  
+  @if (headlines().length === 0) {
+    <div class="headline-nav-empty">
+      <p class="text-text-inverse/60 text-sm">No headings yet. Start writing to see your document structure here.</p>
+    </div>
+  } @else {
+    <nav class="headline-nav-list">
+      @for (headline of headlines(); track headline.id) {
+        <button
+          (click)="scrollToHeadline(headline)"
+          class="headline-nav-item"
+          [class]="getIndentClass(headline.level)"
+          [class.headline-nav-item-active]="activeHeadlineId() === headline.id"
+          [class.font-medium]="headline.level === 1"
+          [class.font-normal]="headline.level !== 1">
+          {{ headline.text }}
+        </button>
+      }
+    </nav>
+  }
+</div>

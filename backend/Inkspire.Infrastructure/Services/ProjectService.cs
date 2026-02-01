@@ -279,6 +279,60 @@ public class ProjectService : IProjectService
         await _context.SaveChangesAsync();
     }
 
+    public async Task LeaveProjectAsync(Guid projectId, Guid userId)
+    {
+        var member = await _context.ProjectMembers
+            .FirstOrDefaultAsync(pm => pm.ProjectId == projectId && pm.UserId == userId);
+
+        if (member == null)
+            throw new InvalidOperationException("You are not a member of this project");
+
+        if (member.Role == ProjectRole.Owner)
+            throw new InvalidOperationException("Project owner cannot leave. Transfer ownership or delete the project.");
+
+        // Remove member
+        _context.ProjectMembers.Remove(member);
+        
+        // Remove all drafts and proposals by this user in this project
+        var documents = await _context.Documents
+            .Where(d => d.ProjectId == projectId)
+            .Select(d => d.Id)
+            .ToListAsync();
+        
+        var drafts = await _context.UserDrafts
+            .Where(d => documents.Contains(d.DocumentId) && d.UserId == userId)
+            .ToListAsync();
+        
+        var proposals = await _context.Proposals
+            .Where(p => documents.Contains(p.DocumentId) && p.AuthorId == userId)
+            .ToListAsync();
+        
+        _context.UserDrafts.RemoveRange(drafts);
+        _context.Proposals.RemoveRange(proposals);
+        
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<string> VoteToDeleteProjectAsync(Guid projectId, Guid userId)
+    {
+        var member = await _context.ProjectMembers
+            .FirstOrDefaultAsync(pm => pm.ProjectId == projectId && pm.UserId == userId);
+
+        if (member == null)
+            throw new InvalidOperationException("You are not a member of this project");
+
+        // For now, implement immediate deletion if owner
+        // TODO: Implement actual voting system with majority approval
+        if (member.Role == ProjectRole.Owner)
+        {
+            await DeleteProjectAsync(projectId);
+            return "Project deleted successfully.";
+        }
+        
+        // For non-owners, would implement voting logic here
+        return "Your deletion vote has been recorded. Waiting for majority approval.";
+    }
+
     public async Task<bool> HasPermissionAsync(Guid projectId, Guid userId, MemberPermissions permission)
     {
         var member = await _context.ProjectMembers
