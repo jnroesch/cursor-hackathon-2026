@@ -53,6 +53,16 @@ public interface IProjectService
     Task RemoveAuthorAsync(Guid projectId, Guid userId);
 
     /// <summary>
+    /// Allows a user to leave a project (removes themselves as a member).
+    /// </summary>
+    Task LeaveProjectAsync(Guid projectId, Guid userId);
+
+    /// <summary>
+    /// Votes to delete a project. Requires majority approval from all members.
+    /// </summary>
+    Task<string> VoteToDeleteProjectAsync(Guid projectId, Guid userId);
+
+    /// <summary>
     /// Checks if a user has the specified permission in a project.
     /// </summary>
     Task<bool> HasPermissionAsync(Guid projectId, Guid userId, Inkspire.Core.Enums.MemberPermissions permission);

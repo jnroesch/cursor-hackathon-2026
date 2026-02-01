@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -7,27 +7,25 @@ import { DocumentService } from '../../core/services/document.service';
 import { ProposalService } from '../../core/services/proposal.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Project, DocumentSummary, ProjectMember, ProposalSummary, VoteType } from '../../core/models';
+import { ManuscriptTabComponent } from './tabs/manuscript-tab/manuscript-tab.component';
+import { NotesTabComponent } from './tabs/notes-tab/notes-tab.component';
+import { ReviewTabComponent, ActivityItem, ProposalWithDocument } from './tabs/review-tab/review-tab.component';
+import { ConfigureTabComponent } from './tabs/configure-tab/configure-tab.component';
 
-// Activity item for the recent activity feed
-interface ActivityItem {
-  id: string;
-  type: 'document_created' | 'proposal_submitted' | 'proposal_accepted' | 'proposal_rejected' | 'member_joined';
-  title: string;
-  description: string;
-  author?: string;
-  timestamp: string;
-  icon: 'document' | 'proposal' | 'check' | 'x' | 'user';
-}
-
-// Extended proposal summary with document ID for navigation
-interface ProposalWithDocument extends ProposalSummary {
-  documentId: string;
-}
+type TabType = 'manuscript' | 'notes' | 'review' | 'configure';
 
 @Component({
   selector: 'app-project',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [
+    CommonModule, 
+    RouterModule, 
+    FormsModule,
+    ManuscriptTabComponent,
+    NotesTabComponent,
+    ReviewTabComponent,
+    ConfigureTabComponent
+  ],
   templateUrl: './project.component.html',
   styleUrl: './project.component.css'
 })
@@ -39,6 +37,10 @@ export class ProjectComponent implements OnInit {
   allProposals = signal<ProposalWithDocument[]>([]);
   isLoading = signal(true);
   projectId: string = '';
+  
+  // Tab management
+  activeTab = signal<TabType>('manuscript');
+  private readonly TAB_STORAGE_KEY_PREFIX = 'inkspire-project-tab-';
 
   // Computed recent activity from documents and proposals
   recentActivity = computed<ActivityItem[]>(() => {
@@ -113,7 +115,15 @@ export class ProjectComponent implements OnInit {
     private documentService: DocumentService,
     private proposalService: ProposalService,
     private authService: AuthService
-  ) {}
+  ) {
+    // Save tab state whenever it changes
+    effect(() => {
+      const tab = this.activeTab();
+      if (this.projectId) {
+        localStorage.setItem(this.TAB_STORAGE_KEY_PREFIX + this.projectId, tab);
+      }
+    });
+  }
 
   // Check if current user is the author of a proposal
   isOwnProposal(proposal: ProposalWithDocument): boolean {
@@ -124,6 +134,12 @@ export class ProjectComponent implements OnInit {
   ngOnInit(): void {
     this.projectId = this.route.snapshot.paramMap.get('projectId') || '';
     if (this.projectId) {
+      // Load last active tab from localStorage
+      const savedTab = localStorage.getItem(this.TAB_STORAGE_KEY_PREFIX + this.projectId) as TabType;
+      if (savedTab && ['manuscript', 'notes', 'review', 'configure'].includes(savedTab)) {
+        this.activeTab.set(savedTab);
+      }
+      
       this.loadProject();
     }
   }
@@ -308,5 +324,58 @@ export class ProjectComponent implements OnInit {
   // View proposal details - navigate to editor in diff view mode
   viewProposalDetails(proposal: ProposalWithDocument): void {
     this.router.navigate(['/editor', proposal.documentId, 'proposal', proposal.id]);
+  }
+  
+  // Tab navigation
+  switchTab(tab: TabType): void {
+    this.activeTab.set(tab);
+  }
+  
+  // Get current user ID
+  getCurrentUserId(): string {
+    return this.authService.currentUser()?.id || '';
+  }
+  
+  // Project update handlers for Configure tab
+  handleUpdateProject(data: { title: string, description: string }): void {
+    this.projectService.updateProject(this.projectId, {
+      title: data.title,
+      description: data.description
+    }).subscribe({
+      next: (updated) => {
+        this.project.set(updated);
+      },
+      error: (err) => {
+        console.error('Failed to update project:', err);
+      }
+    });
+  }
+  
+  handleLeaveProject(): void {
+    this.projectService.leaveProject(this.projectId).subscribe({
+      next: () => {
+        this.router.navigate(['/dashboard']);
+      },
+      error: (err) => {
+        console.error('Failed to leave project:', err);
+        alert('Failed to leave project. Please try again.');
+      }
+    });
+  }
+  
+  handleVoteToDelete(): void {
+    this.projectService.voteToDeleteProject(this.projectId).subscribe({
+      next: (response) => {
+        alert(response.message);
+        // If project was deleted, navigate to dashboard
+        if (response.message.includes('deleted successfully')) {
+          this.router.navigate(['/dashboard']);
+        }
+      },
+      error: (err) => {
+        console.error('Failed to vote for deletion:', err);
+        alert('Failed to process deletion vote. Please try again.');
+      }
+    });
   }
 }

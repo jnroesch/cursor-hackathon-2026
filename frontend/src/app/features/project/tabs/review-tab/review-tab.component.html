@@ -1,0 +1,185 @@
+<!-- Review Tab - Pending Proposals & Recent Activity -->
+<div class="review-tab-container">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Pending Proposals (Left - 2 columns) -->
+    <div class="lg:col-span-2">
+      <section>
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="subheading">PENDING SUBMISSIONS</h2>
+          @if (pendingProposals.length > 0) {
+            <span class="inline-flex items-center px-2 py-0.5 bg-amber-100 text-amber-800 text-xs font-medium">
+              {{ pendingProposals.length }} pending
+            </span>
+          }
+        </div>
+
+        @if (pendingProposals.length === 0) {
+          <div class="card border-dashed p-8 text-center">
+            <svg class="w-12 h-12 mx-auto text-text-muted mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+            <p class="text-text-muted text-sm">No pending submissions</p>
+            <p class="text-text-muted text-xs mt-2">Proposals will appear here when team members submit changes for review.</p>
+          </div>
+        } @else {
+          <div class="space-y-4">
+            @for (proposal of pendingProposals; track proposal.id) {
+              <div class="card">
+                <!-- Header row -->
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5">Proposal</span>
+                    <span class="text-sm text-text-muted">by {{ proposal.author.displayName }} · {{ formatDate(proposal.createdAt) }}</span>
+                  </div>
+                  <button 
+                    (click)="onViewProposal(proposal)"
+                    class="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    View Changes
+                  </button>
+                </div>
+
+                <!-- Description -->
+                @if (proposal.description) {
+                  <h3 class="font-serif text-lg text-text-primary mb-2">{{ proposal.description }}</h3>
+                } @else {
+                  <h3 class="font-serif text-lg text-text-muted italic mb-2">No description provided</h3>
+                }
+
+                <!-- Voting progress -->
+                <div class="mt-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-1">
+                      <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                      </svg>
+                      <span class="text-sm font-medium text-green-600">{{ proposal.approveCount }} approve</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <span class="text-sm font-medium text-red-600">{{ proposal.rejectCount }} reject</span>
+                      <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </div>
+                  </div>
+
+                  <!-- Progress bar - Scharf style with sharp corners -->
+                  <div class="h-2 bg-gray-200 overflow-hidden">
+                    @if (proposal.approveCount + proposal.rejectCount > 0) {
+                      <div class="h-full flex">
+                        <div class="bg-brand-panel transition-all" [style.width.%]="getApprovePercentage(proposal)"></div>
+                        <div class="bg-text-muted transition-all" [style.width.%]="getRejectPercentage(proposal)"></div>
+                      </div>
+                    }
+                  </div>
+                  <p class="text-xs text-text-muted mt-1">{{ proposal.approveCount + proposal.rejectCount }} total votes</p>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="flex items-center gap-3 mt-4 pt-4 border-t border-brand-border">
+                  @if (isOwnProposal(proposal)) {
+                    <!-- Own proposal - cannot vote -->
+                    <div class="flex-1 py-2.5 px-4 bg-gray-100 text-gray-500 text-sm text-center">
+                      <span class="flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        Your proposal — awaiting votes from other members
+                      </span>
+                    </div>
+                  } @else {
+                    <!-- Other's proposal - can vote -->
+                    <button 
+                      (click)="onVote(proposal.id, 'Approve')"
+                      [disabled]="isVoting"
+                      class="btn btn-primary flex-1 disabled:opacity-50">
+                      <span class="flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Vote to Approve
+                      </span>
+                    </button>
+                    <button 
+                      (click)="onVote(proposal.id, 'Reject')"
+                      [disabled]="isVoting"
+                      class="btn btn-secondary flex-1 disabled:opacity-50 hover:bg-red-50 hover:border-red-600 hover:text-red-600">
+                      <span class="flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        Vote to Reject
+                      </span>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+    </div>
+
+    <!-- Recent Activity (Right column) -->
+    <div>
+      <section>
+        <h2 class="subheading mb-6">RECENT ACTIVITY</h2>
+        @if (recentActivity.length === 0) {
+          <div class="card border-dashed p-6 text-center">
+            <p class="text-text-muted text-sm">No recent activity</p>
+          </div>
+        } @else {
+          <div class="space-y-1">
+            @for (activity of recentActivity; track activity.id) {
+              <div class="flex items-start gap-3 py-3 border-b border-brand-border last:border-b-0">
+                <!-- Activity Icon -->
+                <div class="w-8 h-8 flex items-center justify-center flex-shrink-0" 
+                     [class.bg-blue-50]="activity.icon === 'document'"
+                     [class.bg-amber-50]="activity.icon === 'proposal'"
+                     [class.bg-green-50]="activity.icon === 'check'"
+                     [class.bg-red-50]="activity.icon === 'x'"
+                     [class.bg-purple-50]="activity.icon === 'user'">
+                  @switch (activity.icon) {
+                    @case ('document') {
+                      <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                      </svg>
+                    }
+                    @case ('proposal') {
+                      <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                      </svg>
+                    }
+                    @case ('check') {
+                      <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    }
+                    @case ('x') {
+                      <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                    }
+                    @case ('user') {
+                      <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                      </svg>
+                    }
+                  }
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm text-text-primary truncate">{{ activity.title }}</p>
+                  <p class="text-xs text-text-muted truncate">{{ activity.description }}</p>
+                  <p class="text-xs text-text-muted mt-0.5">{{ formatDate(activity.timestamp) }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+    </div>
+  </div>
+</div>

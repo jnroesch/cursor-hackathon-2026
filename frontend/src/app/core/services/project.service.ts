@@ -49,4 +49,12 @@ export class ProjectService {
   removeMember(projectId: string, userId: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${projectId}/authors/${userId}`);
   }
+  
+  leaveProject(projectId: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${projectId}/leave`, {});
+  }
+  
+  voteToDeleteProject(projectId: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/${projectId}/delete-vote`, {});
+  }
 }
