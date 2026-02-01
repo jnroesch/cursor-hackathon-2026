@@ -5,6 +5,15 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { User, UpdateProfileRequest } from '../../core/models';
 
+interface DashboardData {
+  projectsPublished: number;
+  projectsInProgress: number;
+  totalRevenue: number;
+  copiesSold: number;
+  thisMonthRevenue: number;
+  monthlyGrowth: number;
+}
+
 @Component({
   selector: 'app-profile',
   standalone: true,
@@ -13,6 +22,19 @@ import { User, UpdateProfileRequest } from '../../core/models';
   styleUrl: './profile.component.css'
 })
 export class ProfileComponent implements OnInit {
+  // Expose Math for template
+  Math = Math;
+
+  // Dashboard placeholder data
+  dashboardData: DashboardData = {
+    projectsPublished: 3,
+    projectsInProgress: 2,
+    totalRevenue: 12450,
+    copiesSold: 847,
+    thisMonthRevenue: 1280,
+    monthlyGrowth: 15.3
+  };
+
   // Predefined roles
   readonly predefinedRoles = [
     'character designer',
@@ -34,18 +56,6 @@ export class ProfileComponent implements OnInit {
   // Loading states
   isLoading = signal(true);
   isSaving = signal(false);
-
-  // Pastel colors for role pills
-  readonly roleColors = [
-    { bg: '#FFE5E5', border: '#FFB3B3', text: '#8B0000' }, // Light red
-    { bg: '#E5F3FF', border: '#B3D9FF', text: '#003366' }, // Light blue
-    { bg: '#E5FFE5', border: '#B3FFB3', text: '#006600' }, // Light green
-    { bg: '#FFF5E5', border: '#FFD9B3', text: '#663300' }, // Light orange
-    { bg: '#F0E5FF', border: '#D9B3FF', text: '#4D0066' }, // Light purple
-    { bg: '#FFE5F5', border: '#FFB3E0', text: '#660033' }, // Light pink
-    { bg: '#E5FFFF', border: '#B3FFFF', text: '#006666' }, // Light cyan
-    { bg: '#FFFFE5', border: '#FFFFB3', text: '#666600' }, // Light yellow
-  ];
 
   constructor(public authService: AuthService) {}
 
@@ -121,11 +131,6 @@ export class ProfileComponent implements OnInit {
       this.addRole(this.customRoleInput.trim());
       this.customRoleInput = '';
     }
-  }
-
-  // Get color for a role (cycle through colors)
-  getRoleColor(role: string, index: number): { bg: string; border: string; text: string } {
-    return this.roleColors[index % this.roleColors.length];
   }
 
   // Save profile

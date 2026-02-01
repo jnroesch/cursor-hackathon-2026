@@ -1,1 +1,234 @@
-/* Profile component specific styles */
+/* Profile Dashboard Component - Scharf Design System */
+
+/* Sidebar Spacing */
+.mr-sidebar {
+  margin-right: 320px;
+}
+
+/* Responsive override for main content on mobile */
+@media (max-width: 640px) {
+  /* Remove extra margins on mobile to maximize content area */
+  main.ml-rail {
+    margin-left: 60px; /* Keep nav rail margin */
+  }
+  
+  main.mr-sidebar {
+    margin-right: 0; /* Remove sidebar margin on mobile */
+  }
+}
+
+/* Profile Sidebar - Dark Right Panel */
+.profile-sidebar {
+  background-color: #0D0D0D;
+  width: 320px;
+  height: 100vh;
+  position: fixed;
+  right: 0;
+  top: 0;
+  border-left: 1px solid #D1D1D1;
+  padding: 2rem 1.5rem;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.profile-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.profile-sidebar-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.profile-save-btn {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 200ms ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.profile-save-btn-active {
+  background: #FFFFFF;
+  color: #0D0D0D;
+  border-color: #FFFFFF;
+}
+
+.profile-save-btn-active:hover {
+  opacity: 0.9;
+}
+
+.profile-save-btn-disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.profile-sidebar-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profile-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.profile-input,
+.profile-textarea {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0;
+  padding: 0.625rem;
+  transition: border-color 200ms ease, background-color 200ms ease;
+  line-height: 1.4;
+}
+
+.profile-input:focus,
+.profile-textarea:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.profile-input::placeholder,
+.profile-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.profile-textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.profile-role-btn {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.profile-role-btn:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.05);
+  color: #FFFFFF;
+}
+
+.profile-add-btn {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0.625rem 1rem;
+  border-radius: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 200ms ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.profile-add-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #FFFFFF;
+}
+
+.profile-add-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Scrollbar styling for dark sidebar */
+.profile-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.profile-sidebar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.profile-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 0;
+}
+
+.profile-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Dashboard KPI Cards */
+.card {
+  background-color: #FFFFFF;
+  padding: 1.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .mr-sidebar {
+    margin-right: 0;
+  }
+  
+  .profile-sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+    border-left: none;
+    border-top: 1px solid #D1D1D1;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Adjust card padding on mobile */
+  .card {
+    padding: 1rem;
+  }
+  
+  /* Ensure main content doesn't have sidebar margin on mobile */
+  .mr-sidebar {
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Smaller padding on very small screens */
+  .card {
+    padding: 0.875rem;
+  }
+}
+
