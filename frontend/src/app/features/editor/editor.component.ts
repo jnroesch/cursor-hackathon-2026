@@ -7,6 +7,7 @@ import { DocumentService } from '../../core/services/document.service';
 import { ProposalService } from '../../core/services/proposal.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Document as InkspireDocument, UserDraft, Proposal, VoteType } from '../../core/models';
+import { ConsistencyCheckResult, ConsistencyIssue, IssueSeverity, IssueCategory } from '../../core/models/proposal.model';
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -38,6 +39,24 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
   // Proposal modal
   showProposalModal = signal(false);
   proposalDescription = '';
+  
+  // AI Consistency check
+  isCheckingConsistency = signal(false);
+  consistencyResult = signal<ConsistencyCheckResult | null>(null);
+  consistencyCheckCompleted = signal(false);
+  
+  // Computed property for issue counts
+  errorCount = computed(() => {
+    const result = this.consistencyResult();
+    if (!result) return 0;
+    return result.issues.filter(i => i.severity === IssueSeverity.Error).length;
+  });
+  
+  warningCount = computed(() => {
+    const result = this.consistencyResult();
+    if (!result) return 0;
+    return result.issues.filter(i => i.severity === IssueSeverity.Warning).length;
+  });
   
   // Proposal view mode
   proposalId: string = '';
@@ -342,11 +361,59 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
   // Submit for review modal
   openProposalModal(): void {
     this.proposalDescription = '';
+    this.consistencyResult.set(null);
+    this.consistencyCheckCompleted.set(false);
     this.showProposalModal.set(true);
+    
+    // Start the AI consistency check
+    this.runConsistencyCheck();
   }
 
   closeProposalModal(): void {
     this.showProposalModal.set(false);
+    this.consistencyResult.set(null);
+    this.consistencyCheckCompleted.set(false);
+  }
+  
+  runConsistencyCheck(): void {
+    if (!this.editor || this.isCheckingConsistency()) return;
+    
+    this.isCheckingConsistency.set(true);
+    const content = this.editor.getJSON();
+    
+    // First save the draft, then run the consistency check
+    this.documentService.saveDraft(this.documentId, { content }).subscribe({
+      next: () => {
+        this.documentService.checkConsistency(this.documentId).subscribe({
+          next: (result) => {
+            this.consistencyResult.set(result);
+            this.consistencyCheckCompleted.set(true);
+            this.isCheckingConsistency.set(false);
+          },
+          error: () => {
+            // If check fails, still allow submission
+            this.consistencyCheckCompleted.set(true);
+            this.isCheckingConsistency.set(false);
+          }
+        });
+      },
+      error: () => {
+        this.consistencyCheckCompleted.set(true);
+        this.isCheckingConsistency.set(false);
+      }
+    });
+  }
+  
+  // Helper to get category icon
+  getCategoryIcon(category: IssueCategory): string {
+    switch (category) {
+      case IssueCategory.Character: return 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z';
+      case IssueCategory.World: return 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
+      case IssueCategory.Plot: return 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z';
+      case IssueCategory.Timeline: return 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z';
+      case IssueCategory.Style: return 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z';
+      default: return 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
+    }
   }
 
   submitForReview(): void {
@@ -359,6 +426,7 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
     this.documentService.saveDraft(this.documentId, { content }).subscribe({
       next: () => {
         // Now create the proposal - the backend will compute the diff from the draft
+        // and run a final AI consistency check
         this.proposalService.createProposal(
           this.documentId, 
           this.proposalDescription.trim() || undefined

@@ -12,10 +12,12 @@ namespace Inkspire.Api.Controllers;
 public class DocumentsController : ControllerBase
 {
     private readonly IDocumentService _documentService;
+    private readonly IAIConsistencyService _aiConsistencyService;
 
-    public DocumentsController(IDocumentService documentService)
+    public DocumentsController(IDocumentService documentService, IAIConsistencyService aiConsistencyService)
     {
         _documentService = documentService;
+        _aiConsistencyService = aiConsistencyService;
     }
 
     [HttpGet("{id}")]
@@ -64,6 +66,39 @@ public class DocumentsController : ControllerBase
     {
         var history = await _documentService.GetVersionHistoryAsync(id);
         return Ok(history);
+    }
+
+    /// <summary>
+    /// Runs an AI consistency check on the user's draft for the specified document.
+    /// Analyzes the draft against existing book content and notes to identify inconsistencies.
+    /// </summary>
+    [HttpPost("{id}/ai/consistency-check")]
+    public async Task<ActionResult<ConsistencyCheckResult>> CheckConsistency(Guid id)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            
+            // Get the user's draft
+            var draft = await _documentService.GetOrCreateUserDraftAsync(id, userId);
+            
+            // Get the document to find the project ID
+            var document = await _documentService.GetLiveDocumentAsync(id);
+            if (document == null)
+                return NotFound(new { error = "Document not found" });
+
+            // Run the AI consistency check
+            var result = await _aiConsistencyService.CheckConsistencyAsync(
+                document.ProjectId,
+                id,
+                draft.DraftContent);
+
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
     }
 
     private Guid GetCurrentUserId()

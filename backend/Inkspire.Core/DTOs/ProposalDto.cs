@@ -13,6 +13,7 @@ public record ProposalDto(
     JsonDocument? Operations,
     JsonDocument? ProposedContent,
     string? Description,
+    JsonDocument? AIFeedback,
     int ApproveCount,
     int RejectCount,
     int CommentCount,
@@ -25,6 +26,7 @@ public record ProposalSummaryDto(
     UserSummaryDto Author,
     ProposalStatus Status,
     string? Description,
+    JsonDocument? AIFeedback,
     int ApproveCount,
     int RejectCount,
     DateTime CreatedAt

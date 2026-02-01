@@ -28,6 +28,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: inkspire-backend
+    env_file:
+      - .env.local
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=db;Database=inkspire;Username=inkspire;Password=inkspire_dev
@@ -35,6 +37,9 @@ services:
       - Jwt__Issuer=Inkspire
       - Jwt__Audience=Inkspire
       - Jwt__ExpirationInDays=7
+      - OpenAI__ApiKey=${OPENAI_API_KEY:-}
+      - OpenAI__Model=${OPENAI_MODEL:-gpt-4o}
+      - OpenAI__MaxTokens=4096
     ports:
       - "5000:5000"
     depends_on:

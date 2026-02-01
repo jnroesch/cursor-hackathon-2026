@@ -99,6 +99,7 @@ builder.Services.AddScoped<IProposalService, ProposalService>();
 builder.Services.AddScoped<IVotingService, VotingService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IChangeTrackingService, ChangeTrackingService>();
+builder.Services.AddScoped<IAIConsistencyService, AIConsistencyService>();
 
 var app = builder.Build();
 

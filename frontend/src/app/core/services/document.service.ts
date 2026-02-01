@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Document, DocumentSummary, UserDraft, CreateDocumentRequest, SaveDraftRequest } from '../models';
+import { ConsistencyCheckResult } from '../models/proposal.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -38,5 +39,16 @@ export class DocumentService {
 
   saveDraft(documentId: string, request: SaveDraftRequest): Observable<UserDraft> {
     return this.http.put<UserDraft>(`${this.baseUrl}/documents/${documentId}/draft`, request);
+  }
+
+  /**
+   * Runs an AI consistency check on the user's draft for the specified document.
+   * Analyzes the draft against existing book content and notes to identify inconsistencies.
+   */
+  checkConsistency(documentId: string): Observable<ConsistencyCheckResult> {
+    return this.http.post<ConsistencyCheckResult>(
+      `${this.baseUrl}/documents/${documentId}/ai/consistency-check`,
+      {}
+    );
   }
 }

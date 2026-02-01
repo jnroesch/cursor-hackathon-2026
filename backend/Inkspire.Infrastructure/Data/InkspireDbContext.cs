@@ -137,6 +137,14 @@ public class InkspireDbContext : IdentityDbContext<User, IdentityRole<Guid>, Gui
             entity.Property(e => e.Operations)
                 .HasColumnType("jsonb");
 
+            // Store proposed content as JSONB
+            entity.Property(e => e.ProposedContent)
+                .HasColumnType("jsonb");
+
+            // Store AI feedback as JSONB
+            entity.Property(e => e.AIFeedback)
+                .HasColumnType("jsonb");
+
             entity.Property(e => e.Description).HasMaxLength(2000);
 
             entity.HasOne(e => e.Document)

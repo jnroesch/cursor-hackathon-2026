@@ -12,6 +12,41 @@ export enum VoteType {
   Reject = 'Reject'
 }
 
+// AI Consistency Check Types
+export enum IssueSeverity {
+  Warning = 'Warning',
+  Error = 'Error'
+}
+
+export enum IssueCategory {
+  Character = 'Character',
+  World = 'World',
+  Plot = 'Plot',
+  Timeline = 'Timeline',
+  Style = 'Style',
+  Other = 'Other'
+}
+
+export interface ConsistencyIssue {
+  severity: IssueSeverity;
+  category: IssueCategory;
+  description: string;
+  suggestion?: string;
+  location?: string;
+}
+
+export interface ConsistencyCheckResult {
+  issues: ConsistencyIssue[];
+  summary: string;
+  checkedAt: string;
+}
+
+export interface AIFeedback {
+  issues: ConsistencyIssue[];
+  summary: string;
+  checkedAt: string;
+}
+
 export interface Proposal {
   id: string;
   documentId: string;
@@ -22,6 +57,7 @@ export interface Proposal {
   operations?: any;
   proposedContent?: any;
   description?: string;
+  aiFeedback?: AIFeedback;
   approveCount: number;
   rejectCount: number;
   commentCount: number;
@@ -34,6 +70,7 @@ export interface ProposalSummary {
   author: UserSummary;
   status: ProposalStatus;
   description?: string;
+  aiFeedback?: AIFeedback;
   approveCount: number;
   rejectCount: number;
   createdAt: string;

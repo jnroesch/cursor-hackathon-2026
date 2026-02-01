@@ -433,6 +433,75 @@
                 </div>
               }
             </div>
+
+            <!-- AI Feedback Section -->
+            @if (proposal()?.aiFeedback) {
+              <div class="my-6 h-px bg-text-inverse/10"></div>
+              
+              <h2 class="subheading text-text-inverse/60 mb-4">AI Consistency Check</h2>
+              
+              <div class="space-y-3">
+                @if (proposal()?.aiFeedback?.issues?.length === 0) {
+                  <div class="bg-green-900/30 border border-green-700/30 p-3 rounded">
+                    <div class="flex items-center gap-2 text-green-400 text-sm">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      <span>No issues found</span>
+                    </div>
+                  </div>
+                } @else {
+                  <!-- Issue summary -->
+                  <div class="flex items-center gap-3 text-xs">
+                    @for (issue of proposal()?.aiFeedback?.issues || []; track $index) {
+                      @if ($index === 0) {
+                        @if (issue.severity === 'Error') {
+                          <span class="flex items-center gap-1 text-red-400">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                          </span>
+                        }
+                      }
+                    }
+                    <span class="text-text-inverse/60">
+                      {{ proposal()?.aiFeedback?.issues?.length }} {{ (proposal()?.aiFeedback?.issues?.length || 0) === 1 ? 'issue' : 'issues' }} found
+                    </span>
+                  </div>
+                  
+                  <!-- Issues list -->
+                  <div class="space-y-2 max-h-48 overflow-y-auto">
+                    @for (issue of proposal()?.aiFeedback?.issues || []; track $index) {
+                      <div class="bg-text-inverse/5 p-3 rounded text-sm">
+                        <div class="flex items-start gap-2">
+                          @if (issue.severity === 'Error') {
+                            <svg class="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                          } @else {
+                            <svg class="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                          }
+                          <div class="flex-grow min-w-0">
+                            <span class="text-text-inverse/40 text-xs">{{ issue.category }}</span>
+                            <p class="text-text-inverse/90 text-xs mt-1">{{ issue.description }}</p>
+                            @if (issue.suggestion) {
+                              <p class="text-text-inverse/60 text-xs mt-1">{{ issue.suggestion }}</p>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+                
+                <!-- Summary -->
+                @if (proposal()?.aiFeedback?.summary) {
+                  <p class="text-text-inverse/60 text-xs italic mt-2">{{ proposal()?.aiFeedback?.summary }}</p>
+                }
+              </div>
+            }
           } @else {
             <!-- Normal Edit Mode Sidebar -->
             <h2 class="subheading text-text-inverse/60 mb-4">Document Info</h2>
@@ -512,8 +581,8 @@
 <!-- Submit for Review Modal -->
 @if (showProposalModal()) {
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" (click)="closeProposalModal()">
-    <div class="bg-brand-white border border-brand-border w-full max-w-md mx-4 shadow-lg" (click)="$event.stopPropagation()">
-      <div class="flex items-center justify-between px-6 py-5 border-b border-brand-border">
+    <div class="bg-brand-white border border-brand-border w-full max-w-2xl mx-4 shadow-lg max-h-[90vh] flex flex-col" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between px-6 py-5 border-b border-brand-border flex-shrink-0">
         <h2 class="font-serif text-xl text-text-primary">Submit for Review</h2>
         <button (click)="closeProposalModal()" class="text-text-muted hover:text-text-primary">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -522,7 +591,111 @@
         </button>
       </div>
       
-      <div class="p-6">
+      <div class="p-6 overflow-y-auto flex-grow">
+        <!-- AI Consistency Check Section -->
+        <div class="mb-6">
+          <div class="flex items-center gap-2 mb-3">
+            <svg class="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+            </svg>
+            <h3 class="font-medium text-text-primary">AI Consistency Check</h3>
+          </div>
+          
+          @if (isCheckingConsistency()) {
+            <div class="bg-brand-canvas border border-brand-border p-4 rounded-sm">
+              <div class="flex items-center gap-3">
+                <svg class="animate-spin h-5 w-5 text-brand-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-text-muted text-sm">Analyzing your changes for consistency...</span>
+              </div>
+            </div>
+          } @else if (consistencyCheckCompleted()) {
+            @if (consistencyResult(); as result) {
+              @if (result.issues.length === 0) {
+                <div class="bg-green-50 border border-green-200 p-4 rounded-sm">
+                  <div class="flex items-start gap-3">
+                    <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div>
+                      <p class="text-green-800 font-medium text-sm">No issues found</p>
+                      <p class="text-green-700 text-sm mt-1">{{ result.summary }}</p>
+                    </div>
+                  </div>
+                </div>
+              } @else {
+                <div class="border border-brand-border rounded-sm overflow-hidden">
+                  <!-- Summary header -->
+                  <div class="bg-brand-canvas px-4 py-3 border-b border-brand-border">
+                    <div class="flex items-center gap-4">
+                      @if (errorCount() > 0) {
+                        <span class="flex items-center gap-1.5 text-red-600 text-sm">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                          </svg>
+                          {{ errorCount() }} {{ errorCount() === 1 ? 'error' : 'errors' }}
+                        </span>
+                      }
+                      @if (warningCount() > 0) {
+                        <span class="flex items-center gap-1.5 text-amber-600 text-sm">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                          </svg>
+                          {{ warningCount() }} {{ warningCount() === 1 ? 'warning' : 'warnings' }}
+                        </span>
+                      }
+                    </div>
+                    <p class="text-text-muted text-sm mt-2">{{ result.summary }}</p>
+                  </div>
+                  
+                  <!-- Issues list -->
+                  <div class="max-h-64 overflow-y-auto">
+                    @for (issue of result.issues; track $index) {
+                      <div class="px-4 py-3 border-b border-brand-border last:border-b-0 hover:bg-brand-canvas/50">
+                        <div class="flex items-start gap-3">
+                          <!-- Severity icon -->
+                          @if (issue.severity === 'Error') {
+                            <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                          } @else {
+                            <svg class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                          }
+                          
+                          <div class="flex-grow min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-brand-canvas border border-brand-border text-text-muted">
+                                {{ issue.category }}
+                              </span>
+                            </div>
+                            <p class="text-text-primary text-sm">{{ issue.description }}</p>
+                            @if (issue.suggestion) {
+                              <p class="text-text-muted text-sm mt-1">
+                                <span class="font-medium">Suggestion:</span> {{ issue.suggestion }}
+                              </p>
+                            }
+                            @if (issue.location) {
+                              <p class="text-text-muted text-xs mt-1 italic">"{{ issue.location }}"</p>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            } @else {
+              <div class="bg-brand-canvas border border-brand-border p-4 rounded-sm">
+                <p class="text-text-muted text-sm">Consistency check completed.</p>
+              </div>
+            }
+          }
+        </div>
+        
         <p class="text-text-muted text-sm mb-4">
           Your changes will be submitted as a proposal for review. Once submitted, all authors of this project can vote to approve or reject your changes.
         </p>
@@ -541,14 +714,24 @@
         </div>
       </div>
       
-      <div class="flex justify-end gap-3 px-6 py-4 border-t border-brand-border bg-brand-canvas">
-        <button (click)="closeProposalModal()" class="btn btn-secondary">Cancel</button>
+      <div class="flex justify-end gap-3 px-6 py-4 border-t border-brand-border bg-brand-canvas flex-shrink-0">
+        <button (click)="closeProposalModal()" class="btn btn-secondary">
+          {{ consistencyResult()?.issues?.length ? 'Continue Editing' : 'Cancel' }}
+        </button>
         <button 
           (click)="submitForReview()" 
-          [disabled]="isSubmitting()"
+          [disabled]="isSubmitting() || isCheckingConsistency()"
           class="btn btn-primary"
         >
-          {{ isSubmitting() ? 'Submitting...' : 'Submit Proposal' }}
+          @if (isSubmitting()) {
+            Submitting...
+          } @else if (isCheckingConsistency()) {
+            Checking...
+          } @else if (consistencyResult()?.issues?.length) {
+            Submit Anyway
+          } @else {
+            Submit Proposal
+          }
         </button>
       </div>
     </div>

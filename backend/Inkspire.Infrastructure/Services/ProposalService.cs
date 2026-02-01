@@ -12,11 +12,16 @@ public class ProposalService : IProposalService
 {
     private readonly InkspireDbContext _context;
     private readonly IChangeTrackingService _changeTrackingService;
+    private readonly IAIConsistencyService _aiConsistencyService;
 
-    public ProposalService(InkspireDbContext context, IChangeTrackingService changeTrackingService)
+    public ProposalService(
+        InkspireDbContext context, 
+        IChangeTrackingService changeTrackingService,
+        IAIConsistencyService aiConsistencyService)
     {
         _context = context;
         _changeTrackingService = changeTrackingService;
+        _aiConsistencyService = aiConsistencyService;
     }
 
     public async Task<ProposalDto> CreateProposalAsync(Guid userId, CreateProposalRequest request)
@@ -39,6 +44,27 @@ public class ProposalService : IProposalService
                 draft.DraftContent);
         }
 
+        // Run AI consistency check and convert to JsonDocument for storage
+        var consistencyResult = await _aiConsistencyService.CheckConsistencyAsync(
+            document.ProjectId,
+            request.DocumentId,
+            draft.DraftContent);
+        
+        var aiFeedbackJson = JsonSerializer.Serialize(new
+        {
+            issues = consistencyResult.Issues.Select(i => new
+            {
+                severity = i.Severity.ToString(),
+                category = i.Category.ToString(),
+                description = i.Description,
+                suggestion = i.Suggestion,
+                location = i.Location
+            }),
+            summary = consistencyResult.Summary,
+            checkedAt = consistencyResult.CheckedAt
+        });
+        var aiFeedback = JsonDocument.Parse(aiFeedbackJson);
+
         var proposal = new Proposal
         {
             Id = Guid.NewGuid(),
@@ -49,6 +75,7 @@ public class ProposalService : IProposalService
             Operations = operations,
             ProposedContent = draft.DraftContent, // Store the full proposed content
             Description = request.Description,
+            AIFeedback = aiFeedback, // Store AI consistency check results
             CreatedAt = DateTime.UtcNow
         };
 
@@ -82,6 +109,7 @@ public class ProposalService : IProposalService
             proposal.Operations,
             proposal.ProposedContent,
             proposal.Description,
+            proposal.AIFeedback,
             0, 0, 0,
             proposal.CreatedAt,
             proposal.ResolvedAt
@@ -107,6 +135,7 @@ public class ProposalService : IProposalService
             new UserSummaryDto(p.Author.Id, p.Author.DisplayName, p.Author.AvatarUrl),
             p.Status,
             p.Description,
+            p.AIFeedback,
             p.Votes.Count(v => v.VoteType == VoteType.Approve),
             p.Votes.Count(v => v.VoteType == VoteType.Reject),
             p.CreatedAt
@@ -133,6 +162,7 @@ public class ProposalService : IProposalService
             proposal.Operations,
             proposal.ProposedContent,
             proposal.Description,
+            proposal.AIFeedback,
             proposal.Votes.Count(v => v.VoteType == VoteType.Approve),
             proposal.Votes.Count(v => v.VoteType == VoteType.Reject),
             proposal.Comments.Count,
@@ -294,6 +324,7 @@ public class ProposalService : IProposalService
             proposal.Operations,
             proposal.ProposedContent,
             proposal.Description,
+            proposal.AIFeedback,
             0, 0, 0,
             proposal.CreatedAt,
             proposal.ResolvedAt
