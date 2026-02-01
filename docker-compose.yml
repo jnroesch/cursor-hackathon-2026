@@ -37,8 +37,7 @@ services:
       - Jwt__Issuer=Inkspire
       - Jwt__Audience=Inkspire
       - Jwt__ExpirationInDays=7
-      - OpenAI__ApiKey=${OPENAI_API_KEY:-}
-      - OpenAI__Model=${OPENAI_MODEL:-gpt-4o}
+      - OpenAI__Model=gpt-4o
       - OpenAI__MaxTokens=4096
     ports:
       - "5000:5000"
